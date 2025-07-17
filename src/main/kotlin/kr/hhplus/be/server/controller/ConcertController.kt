@@ -14,6 +14,8 @@ import kr.hhplus.be.server.controller.dto.AvailableSeatsResponse
 import kr.hhplus.be.server.controller.dto.AvailableSeatsResponseItem
 import kr.hhplus.be.server.controller.dto.BalanceRequest
 import kr.hhplus.be.server.controller.dto.BalanceResponse
+import kr.hhplus.be.server.controller.dto.ReservationRequest
+import kr.hhplus.be.server.controller.dto.ReservationResponse
 import kr.hhplus.be.server.controller.dto.SeatsHoldRequest
 import kr.hhplus.be.server.controller.dto.SeatsHoldResponse
 import kr.hhplus.be.server.controller.dto.TokenDecodedResponse
@@ -730,4 +732,149 @@ class ConcertController {
 		}
 	}
 
+	@Operation(summary = "결제 및 예약 확정", tags = ["Reservations"])
+	@ApiResponses(
+		ApiResponse(responseCode = "200", description = "결제 성공",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "SUCCESS",
+            "message": "예약이 성공적으로 완료되었습니다.",
+            "data": {
+              "concertId": 1,
+              "seatId": 1,
+              "price": 130000
+            }
+          }
+          """
+				) ]
+			) ]
+		),
+		ApiResponse(responseCode = "400", description = "잔액 부족 or 잘못된 요청",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "NO_BALANCE",
+            "message": "잔액이 부족합니다."
+          }
+          """
+				) ]
+			) ]
+		),
+		ApiResponse(responseCode = "404", description = "유효하지 않은 토큰",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "INVALID_TOKEN",
+            "message": "유효하지 않은 토큰입니다."
+          }
+          """
+				) ]
+			) ]
+		),
+		ApiResponse(responseCode = "410", description = "토큰 또는 좌석 점유 만료",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "EXPIRED_TOKEN",
+            "message": "토큰이 만료되었습니다."
+          }
+          """
+				) ]
+			) ]
+		)
+	)
+	@Parameter(
+		name        = "X-Queue-Token",
+		`in`        = ParameterIn.HEADER,
+		description = "대기열 토큰",
+		required    = true,
+		schema      = Schema(
+			type    = "string",
+			format  = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
+		)
+	)
+	@PostMapping("/reservations")
+	fun confirmedReservation(
+		@RequestHeader(name = "X-Queue-Token", required = true) token: String,
+
+		@RequestBody reservationRequest: ReservationRequest
+	): ResponseEntity<Response<ReservationResponse>> {
+		val isValid = token == "abcac10b-58cc-4372-a567-0e02b2c3d479" && reservationRequest.seatHoldId == "0e02b2c3d479"
+		val isInvalidToken = token == "bbcac10b-58cc-4372-a567-0e02b2c3d222"
+		val isInvalidBalance = token == "bbcac10b-58cc-4372-a567-0e02b2c3d223"
+		val isExpiredToken = token == "bbcac10b-aaaa-4372-a567-0e02b2c3d222"
+		val isExpiredSeats = token == "bbcac10b-aaaa-4372-a567-0e02b2c3d122"
+
+		return if (isValid) {
+			ResponseEntity.status(HttpStatus.OK).body(
+				Response(
+					code = "SUCCESS",
+					message = "예약이 성공적으로 완료되었습니다.",
+					data = ReservationResponse(
+						concertId = 1L,
+						seatId = 1L,
+						price = 130000,
+					)
+				)
+			)
+		} else if (isInvalidToken) {
+			ResponseEntity
+				.status(HttpStatus.NOT_FOUND)
+				.body(
+					Response(
+						code = "INVALID_TOKEN",
+						message = "유효하지 않은 토큰입니다.",
+						data = null
+					)
+				)
+		} else if (isInvalidBalance) {
+			ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(
+					Response(
+						code = "NO_BALANCE",
+						message = "잔액이 부족합니다.",
+						data = null
+					)
+				)
+		} else if (isExpiredToken) {
+			ResponseEntity
+				.status(HttpStatus.GONE)
+				.body(
+					Response(
+						code = "EXPIRED_TOKEN",
+						message = "토큰이 만료되었습니다.",
+					)
+				)
+		} else if (isExpiredSeats) {
+			ResponseEntity
+				.status(HttpStatus.GONE)
+				.body(
+					Response(
+						code = "EXPIRED_SEATS_HOLD",
+						message = "좌석 점유가 만료되었습니다.",
+					)
+				)
+		} else {
+			ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(
+					Response(
+						code = "BAD_REQUEST",
+						message = "예약 실패",
+						data = null
+					)
+				)
+		}
+	}
 }
