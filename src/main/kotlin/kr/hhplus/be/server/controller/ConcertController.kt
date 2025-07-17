@@ -12,6 +12,8 @@ import kr.hhplus.be.server.controller.dto.AvailableDatesResponse
 import kr.hhplus.be.server.controller.dto.AvailableDatesResponseItem
 import kr.hhplus.be.server.controller.dto.AvailableSeatsResponse
 import kr.hhplus.be.server.controller.dto.AvailableSeatsResponseItem
+import kr.hhplus.be.server.controller.dto.BalanceRequest
+import kr.hhplus.be.server.controller.dto.BalanceResponse
 import kr.hhplus.be.server.controller.dto.SeatsHoldRequest
 import kr.hhplus.be.server.controller.dto.SeatsHoldResponse
 import kr.hhplus.be.server.controller.dto.TokenDecodedResponse
@@ -585,6 +587,143 @@ class ConcertController {
 					Response(
 						code = "INVALID_SEAT",
 						message = "유효하지 않은 좌석입니다.",
+						data = null
+					)
+				)
+		}
+	}
+
+	@Operation(summary = "잔액 조회", tags = ["Balance"])
+	@ApiResponses(
+		ApiResponse(responseCode = "200", description = "조회 성공",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "SUCCESS",
+            "message": "잔액 조회 성공",
+            "data": { "balance": 50000 }
+          }
+          """
+				) ]
+			) ]
+		),
+		ApiResponse(responseCode = "400", description = "토큰 검증 실패",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "BAD_REQUEST",
+            "message": "토큰 검증 실패"
+          }
+          """
+				) ]
+			) ]
+		)
+	)
+	@Parameter(
+		name        = "X-Client-Id",
+		`in`        = ParameterIn.HEADER,
+		description = "클라이언트 식별자(UUID)",
+		required    = true,
+		schema      = Schema(
+			type    = "string",
+			format  = "uuid",
+			example = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		)
+	)
+	@GetMapping("/balance")
+	fun getBalance(
+		@RequestHeader(name = "X-Client-Id", required = true) userId: UUID,
+	): ResponseEntity<Response<BalanceResponse>> {
+		val isValid = userId == UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+
+		return if (isValid) {
+			ResponseEntity.status(HttpStatus.OK).body(
+				Response(
+					code = "SUCCESS",
+					message = "잔액 조회 성공",
+					data = BalanceResponse(balance = 50000)
+				)
+			)
+		} else {
+			ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(
+					Response(
+						code = "BAD_REQUEST",
+						message = "잔액 조회 실패",
+						data = null
+					)
+				)
+		}
+	}
+
+	@Operation(summary = "잔액 충전", tags = ["Balance"])
+	@ApiResponses(
+		ApiResponse(responseCode = "200", description = "충전 성공",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "SUCCESS",
+            "message": "잔액 충전 성공",
+            "data": { "balance": 80000 }
+          }
+          """
+				) ]
+			) ]
+		),
+		ApiResponse(responseCode = "400", description = "충전 실패",
+			content = [ Content(mediaType = "application/json",
+				schema = Schema(implementation = ApiResponse::class),
+				examples = [ ExampleObject(
+					"""
+          {
+            "code": "BAD_REQUEST",
+            "message": "충전 실패"
+          }
+          """
+				) ]
+			) ]
+		)
+	)
+	@Parameter(
+		name        = "X-Client-Id",
+		`in`        = ParameterIn.HEADER,
+		description = "클라이언트 식별자(UUID)",
+		required    = true,
+		schema      = Schema(
+			type    = "string",
+			format  = "uuid",
+			example = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		)
+	)
+	@PostMapping("/balance/charge")
+	fun chargeBalance(
+		@RequestHeader(name = "X-Client-Id", required = true) userId: UUID,
+		@RequestBody balanceRequest: BalanceRequest
+	): ResponseEntity<Response<BalanceResponse>> {
+		val isValid = userId == UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+
+		return if (isValid) {
+			ResponseEntity.status(HttpStatus.OK).body(
+				Response(
+					code = "SUCCESS",
+					message = "잔액 충전 성공",
+					data = BalanceResponse(balance = 50000)
+				)
+			)
+		} else {
+			ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(
+					Response(
+						code = "BAD_REQUEST",
+						message = "잔액 충전 실패",
 						data = null
 					)
 				)
