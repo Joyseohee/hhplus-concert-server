@@ -11,6 +11,7 @@
 - [ERD](2_erd.md)
 - [시퀀스 다이어그램](3_sequence_diagram.md)
 - [상태 다이어그램](4_state_diagram.md)
+- [API 명세](https://joyseohee.github.io/hhplus-concert-server)
 
 ## 📋 시퀀스 다이어그램
 
