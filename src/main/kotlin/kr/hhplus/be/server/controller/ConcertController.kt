@@ -30,11 +30,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 import java.util.UUID
 import kotlin.ranges.contains
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 class ConcertController {
 
 	@Operation(summary = "대기열 토큰 발급", tags = ["Queue"])
@@ -48,7 +49,10 @@ class ConcertController {
             "code": "SUCCESS",
             "message": "토큰이 성공적으로 발급되었습니다.",
             "data": {
-              "token": "abcac10b-58cc-4372-a567-0e02b2c3d479"
+              "token": "abcac10b-58cc-4372-a567-0e02b2c3d479",
+			  "status": "ACTIVE",
+			  "position": 0,
+			  "expiresAt": "2025-07-20T19:12:34Z"
             }
           }
           """
@@ -94,7 +98,12 @@ class ConcertController {
 					Response(
 						code = "SUCCESS",
 						message = "토큰이 성공적으로 발급되었습니다.",
-						data = TokenResponse("abcac10b-58cc-4372-a567-0e02b2c3d479")
+						data = TokenResponse(
+							token = "abcac10b-58cc-4372-a567-0e02b2c3d479",
+							status = "WAITING",
+							position = 1,
+							expiresAt = Instant.MAX,
+						)
 					)
 				)
 		} else {
@@ -123,7 +132,7 @@ class ConcertController {
             "data": {
               "status": "ACTIVE",
               "position": 0,
-              "remainingTimeMills": 300000
+              "expiresAt": "2025-07-20T19:12:34Z"
             }
           }
           """
@@ -186,7 +195,7 @@ class ConcertController {
 						data = TokenDecodedResponse(
 							status = "ACTIVE",
 							position = 0,
-							remainingTimeMills = 300000L
+							expiresAt = Instant.MAX,
 						)
 					)
 				)
@@ -199,7 +208,7 @@ class ConcertController {
 						data = TokenDecodedResponse(
 							status = "WAITING",
 							position = 5,
-							remainingTimeMills = 600000L
+							expiresAt = Instant.MAX,
 						)
 					)
 				)
@@ -213,7 +222,7 @@ class ConcertController {
 						data = TokenDecodedResponse(
 							status = "EXPIRED",
 							position = 0,
-							remainingTimeMills = 0L
+							expiresAt = Instant.MAX,
 						)
 					)
 				)
@@ -302,8 +311,8 @@ class ConcertController {
 			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
-	@GetMapping("/schedules/available-dates")
-	fun getAvailableDates(
+	@GetMapping("/reservations/concerts")
+	fun getConcerts(
 		@RequestHeader(name = "X-Queue-Token", required = true) token: String
 	): ResponseEntity<Response<AvailableDatesResponse>> {
 		val isActive = token == "abcac10b-58cc-4372-a567-0e02b2c3d479"
@@ -417,7 +426,7 @@ class ConcertController {
 			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
-	@GetMapping("/schedules/{concertId}/available-seats")
+	@GetMapping("/reservations/concerts/{concertId}/seats")
 	fun getAvailableSeats(
 		@RequestHeader(name = "X-Queue-Token", required = true) token: String,
 
@@ -482,7 +491,7 @@ class ConcertController {
             "message": "좌석 점유 성공",
             "data": {
               "seatId": 1,
-              "remainingTimeMills": 300000
+              "expiresAt": "2025-07-20T19:12:34Z"
             }
           }
           """
@@ -540,7 +549,7 @@ class ConcertController {
 			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
-	@PostMapping("/schedules/{concertId}/seats/hold")
+	@PostMapping("/reservations/concerts/{concertId}/seats/hold")
 	fun holdSeats(
 		@RequestHeader(name = "X-Queue-Token", required = true) token: String,
 
@@ -559,7 +568,7 @@ class ConcertController {
 						message = "요청이 성공했습니다.",
 						data = SeatsHoldResponse(
 							seatId = seatsHoldRequest.seatId,
-							remainingTimeMills = 300000
+							expiresAt = Instant.MAX
 						)
 					)
 				)

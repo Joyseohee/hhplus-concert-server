@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.time.Instant
 
 @Schema(description = "토큰 상태 응답 DTO")
 data class TokenDecodedResponse(
@@ -8,6 +9,6 @@ data class TokenDecodedResponse(
 	val status: String,
 	@Schema(description = "대기 순번", example = "1")
 	val position: Int,
-	@Schema(description = "토큰 만료까지 남은 시간 (밀리초 단위)", example = "300000")
-	val remainingTimeMills: Long,
+	@Schema(description = "토큰 만료 일시)", example = "2025-07-20T19:12:34Z")
+	val expiresAt: Instant,
 )
