@@ -15,4 +15,4 @@
 
 ## 📋 ERD
 
-![콘서트예약서비스ERD.png](ERD.png)
+![콘서트예약서비스ERD.png](ERD_edited.png)
