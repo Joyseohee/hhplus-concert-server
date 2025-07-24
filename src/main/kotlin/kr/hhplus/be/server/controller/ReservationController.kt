@@ -6,6 +6,7 @@ import kr.hhplus.be.server.service.ConfirmReservationService
 import kr.hhplus.be.server.service.HoldSeatService
 import kr.hhplus.be.server.service.ListConcertService
 import kr.hhplus.be.server.service.ListSeatService
+import kr.hhplus.be.server.service.validation.ValidateQueueTokenService
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,13 +23,16 @@ class ReservationController(
 	val listConcertService: ListConcertService,
 	val listSeatService: ListSeatService,
 	val holdSeatService: HoldSeatService,
-	val confirmReservationService: ConfirmReservationService
+	val confirmReservationService: ConfirmReservationService,
+
+	val validateQueueTokenService: ValidateQueueTokenService
 ) : SwaggerReservationController {
 
 	@GetMapping("/concerts")
 	override fun getConcerts(
-		//		token: String
+		@RequestHeader(name = "X-Queue-Token", required = true) token: String
 	): ResponseEntity<ApiResponse<ListConcertService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
 		val concerts = listConcertService.listConcerts()
 
@@ -43,12 +47,12 @@ class ReservationController(
 
 	@GetMapping("/concerts/{concertId}/seats")
 	override fun getSeats(
-		//        token: String,
-		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+		@RequestHeader(name = "X-Queue-Token", required = true) token: String,
 		@PathVariable(required = true) concertId: Long
 	): ResponseEntity<ApiResponse<ListSeatService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
-		val seats = listSeatService.listAvailableSeats(concertId, userId)
+		val seats = listSeatService.listAvailableSeats(concertId, validateToken.userId)
 
 		return ResponseEntity.ok(
 			ApiResponse(
@@ -61,13 +65,13 @@ class ReservationController(
 
 	@PostMapping("/concerts/{concertId}/seats/hold")
 	override fun holdSeats(
-		//        token: String,
-		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+        @RequestHeader(name = "X-Queue-Token", required = true) token: String,
 		@RequestBody seatsHoldRequest: HoldSeatService.Input
 	): ResponseEntity<ApiResponse<HoldSeatService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
 		val holdSeat = holdSeatService.holdSeat(
-			userId = userId,
+			userId = validateToken.userId,
 			input = seatsHoldRequest,
 		)
 
@@ -82,12 +86,13 @@ class ReservationController(
 
 	@PostMapping("/")
 	override fun confirmedReservation(
-		//        token: String,
-		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+        @RequestHeader(name = "X-Queue-Token", required = true) token: String,
 		@RequestBody reservationRequest: ConfirmReservationService.Input
 	): ResponseEntity<ApiResponse<ConfirmReservationService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
+
 		val reservation = confirmReservationService.confirmReservation(
-			userId = userId,
+			userId = validateToken.userId,
 			input = reservationRequest
 		)
 		return ResponseEntity.ok(
