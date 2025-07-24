@@ -3,7 +3,7 @@ package kr.hhplus.be.server.support
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "API 응답 형식")
-data class Response<T> (
+data class ApiResponse<T> (
     @Schema(description = "응답 코드", example = "SUCCESS")
     val code: String,
 
