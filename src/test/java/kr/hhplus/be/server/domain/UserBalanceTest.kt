@@ -6,25 +6,21 @@ import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.domain.UserBalance.Companion.MAX_POINT
 import kr.hhplus.be.server.domain.UserBalance.Companion.MIN_TRANSACTION_AMOUNT
-import java.util.*
 
 class UserBalanceTest : FreeSpec({
     val userId = 1L
-    val userUuid = UUID.randomUUID().toString()
     val initialBalance = 5_000L
+    val userBalance = UserBalance.create(userId = userId, balance = initialBalance)
 
     "잔고 충전" - {
         "양수 금액을 충전하면 잔고가 증가한다" {
-            val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
+            val chargeAmount = 50L
+            val chargedUserBalance = userBalance.charge(chargeAmount)
 
-            val chargedUserBalance = userBalance.charge(50L)
-
-            chargedUserBalance.balance shouldBe 150L
+            chargedUserBalance.balance shouldBe initialBalance + chargeAmount
         }
 
         "0원 이하 금액을 충전하면 예외가 발생한다" {
-            val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
-
             listOf(0L, -10L).forEach { invalidAmount ->
                 val exception = shouldThrowExactly<IllegalArgumentException> {
                     userBalance.charge(invalidAmount)
@@ -35,8 +31,6 @@ class UserBalanceTest : FreeSpec({
 
         "충전 시 잔고가 50만원을 초과하면 예외가 발생한다" {
             val chargeAmount = 500_000L
-
-            val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
 
             val exception = shouldThrowExactly<IllegalArgumentException> {
                 userBalance.charge(chargeAmount)
@@ -50,16 +44,14 @@ class UserBalanceTest : FreeSpec({
 
         "잔고를 초과하지 않은 금액을 사용하면 잔고를 차감한다" {
             listOf(50L, 100L).forEach { useAmount ->
-                val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
                 val usedUserBalance = userBalance.use(useAmount)
-                usedUserBalance.balance shouldBe 100L - useAmount
+                usedUserBalance.balance shouldBe initialBalance - useAmount
                 usedUserBalance.balance shouldBeGreaterThanOrEqual 0L
             }
         }
 
         "0원 이하의 금액을 사용하면 예외가 발생한다" {
             listOf(0L, -10L).forEach{ invalidAmount ->
-                val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
                 val exception = shouldThrowExactly<IllegalArgumentException> {
                     userBalance.use(invalidAmount)
                 }
@@ -69,7 +61,6 @@ class UserBalanceTest : FreeSpec({
 
         "잔고 이상의 금액을 사용하면 예외가 발생한다" {
             listOf(10_000L, 20_000L).forEach{ useAmount ->
-                val userBalance = UserBalance.create(userId = userId, userUuid = userUuid, balance = initialBalance)
                 val exception = shouldThrowExactly<IllegalArgumentException> {
                     userBalance.use(useAmount)
                 }
