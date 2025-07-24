@@ -26,12 +26,14 @@ paths:
       summary: 좌석 점유 요청
       operationId: holdSeats
       parameters:
-      - name: X-Client-Id
+      - name: X-Queue-Token
         in: header
-        description: 클라이언트 식별자
+        description: 대기열 토큰
         required: true
         schema:
-          type: number
+          type: string
+          format: encoded
+          example: abcac10b-58cc-4372-a567-0e02b2c3d479
       requestBody:
         content:
           application/json:
@@ -59,12 +61,14 @@ paths:
       summary: 결제 및 예약 확정
       operationId: confirmedReservation
       parameters:
-      - name: X-Client-Id
+      - name: X-Queue-Token
         in: header
-        description: 클라이언트 식별자
+        description: 대기열 토큰
         required: true
         schema:
-          type: number
+          type: string
+          format: encoded
+          example: abcac10b-58cc-4372-a567-0e02b2c3d479
       requestBody:
         content:
           application/json:
@@ -85,6 +89,62 @@ paths:
                   concertId: 1
                   seatId: 1
                   price: 130000
+  /api/v1/queue/token/:
+    get:
+      tags:
+      - Queue
+      summary: 대기 번호 및 토큰 상태 조회
+      operationId: getTokenStatus
+      parameters:
+      - name: X-Queue-Token
+        in: header
+        description: 대기열 토큰
+        required: true
+        schema:
+          type: string
+          format: encoded
+          example: abcac10b-58cc-4372-a567-0e02b2c3d479
+      responses:
+        "200":
+          description: 토큰 ACTIVE 혹은 WAITING 상태
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                code: SUCCESS
+                message: 토큰 상태 조회 성공
+                data:
+                  status: ACTIVE
+                  position: 0
+                  expiresAt: 2025-07-20T19:12:34Z
+    post:
+      tags:
+      - Queue
+      summary: 대기열 토큰 발급
+      operationId: createToken
+      parameters:
+      - name: X-Client-Id
+        in: header
+        description: 클라이언트 식별자
+        required: true
+        schema:
+          type: number
+      responses:
+        "201":
+          description: 토큰 발급 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                code: SUCCESS
+                message: 토큰이 성공적으로 발급되었습니다.
+                data:
+                  token: abcac10b-58cc-4372-a567-0e02b2c3d479
+                  status: ACTIVE
+                  position: 0
+                  expiresAt: 2025-07-20T19:12:34Z
   /api/v1/balance/charge:
     post:
       tags:
@@ -122,6 +182,15 @@ paths:
       - Reservations
       summary: 예약 가능한 콘서트 목록 조회
       operationId: getConcerts
+      parameters:
+      - name: X-Queue-Token
+        in: header
+        description: 대기열 토큰
+        required: true
+        schema:
+          type: string
+          format: encoded
+          example: abcac10b-58cc-4372-a567-0e02b2c3d479
       responses:
         "200":
           description: 조회 성공
@@ -150,12 +219,14 @@ paths:
       summary: 특정 콘서트의 좌석 목록 조회
       operationId: getSeats
       parameters:
-      - name: X-Client-Id
+      - name: X-Queue-Token
         in: header
-        description: 클라이언트 식별자
+        description: 대기열 토큰
         required: true
         schema:
-          type: number
+          type: string
+          format: encoded
+          example: abcac10b-58cc-4372-a567-0e02b2c3d479
       - name: concertId
         in: path
         required: true
