@@ -22,12 +22,13 @@ class ReservationController(
     val listConcertService: ListConcertService,
     val listSeatService: ListSeatService,
     val holdSeatService: HoldSeatService,
-)  {
+    val confirmReservationService: ConfirmReservationService
+) : SwaggerReservationController {
 
     @GetMapping("/concerts")
-     fun getConcerts(
-//		token: String
-	): ResponseEntity<ApiResponse<ListConcertService.Output>> {
+    override fun getConcerts(
+        //		token: String
+    ): ResponseEntity<ApiResponse<ListConcertService.Output>> {
 
         val concerts = listConcertService.listConcerts()
 
@@ -40,9 +41,8 @@ class ReservationController(
         )
     }
 
-
     @GetMapping("/concerts/{concertId}/seats")
-     fun getSeats(
+    override fun getSeats(
         //        token: String,
         @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
         @PathVariable(required = true) concertId: Long
@@ -59,9 +59,8 @@ class ReservationController(
         )
     }
 
-
     @PostMapping("/concerts/{concertId}/seats/hold")
-    fun holdSeats(
+    override fun holdSeats(
         //        token: String,
         @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
         @RequestBody seatsHoldRequest: HoldSeatService.Input
@@ -81,5 +80,22 @@ class ReservationController(
         )
     }
 
-
+    @PostMapping("/")
+    override fun confirmedReservation(
+        //        token: String,
+        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+        @RequestBody reservationRequest: ConfirmReservationService.Input
+    ): ResponseEntity<ApiResponse<ConfirmReservationService.Output>> {
+        val reservation = confirmReservationService.confirmReservation(
+            userId = userId,
+            input = reservationRequest
+        )
+        return ResponseEntity.ok(
+            ApiResponse(
+                code = "SUCCESS",
+                message = "예약 확정 성공",
+                data = reservation
+            )
+        )
+    }
 }
