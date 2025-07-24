@@ -12,9 +12,6 @@ import kr.hhplus.be.server.service.ListConcertService
 import kr.hhplus.be.server.service.ListSeatService
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 interface SwaggerReservationController {
@@ -50,19 +47,19 @@ interface SwaggerReservationController {
 			)]
 		)]
 	)
-//	@Parameter(
-//		name = "X-Queue-Token",
-//		`in` = ParameterIn.HEADER,
-//		description = "대기열 토큰",
-//		required = true,
-//		schema = Schema(
-//			type = "string",
-//			format = "encoded",
-//			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
-//		)
-//	)
+	@Parameter(
+		name = "X-Queue-Token",
+		`in` = ParameterIn.HEADER,
+		description = "대기열 토큰",
+		required = true,
+		schema = Schema(
+			type = "string",
+			format = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
+		)
+	)
 	fun getConcerts(
-//		@RequestHeader("X-Queue-Token") token: String
+		token: String
 	): ResponseEntity<ApiResponse<ListConcertService.Output>>
 
 	@Operation(summary = "특정 콘서트의 좌석 목록 조회", tags = ["Reservations"])
@@ -86,29 +83,19 @@ interface SwaggerReservationController {
 			) ]
 		) ]
 	)
-//	@Parameter(
-//		name        = "X-Queue-Token",
-//		`in`        = ParameterIn.HEADER,
-//		description = "대기열 토큰",
-//		required    = true,
-//		schema      = Schema(
-//			type    = "string",
-//			format  = "encoded",
-//			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
-//		)
-//	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "X-Queue-Token",
 		`in`        = ParameterIn.HEADER,
-		description = "클라이언트 식별자",
+		description = "대기열 토큰",
 		required    = true,
 		schema      = Schema(
-			type    = "number",
+			type    = "string",
+			format  = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
 	fun getSeats(
-//		@RequestHeader("X-Queue-Token") token: String,
-		userId: Long,
+		token: String,
 		concertId: Long
 	): ResponseEntity<ApiResponse<ListSeatService.Output>>
 
@@ -133,29 +120,19 @@ interface SwaggerReservationController {
 			)]
 		)]
 	)
-//	@Parameter(
-//		name        = "X-Queue-Token",
-//		`in`        = ParameterIn.HEADER,
-//		description = "대기열 토큰",
-//		required    = true,
-//		schema      = Schema(
-//			type    = "string",
-//			format  = "encoded",
-//			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
-//		)
-//	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "X-Queue-Token",
 		`in`        = ParameterIn.HEADER,
-		description = "클라이언트 식별자",
+		description = "대기열 토큰",
 		required    = true,
 		schema      = Schema(
-			type    = "number",
+			type    = "string",
+			format  = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
 	fun holdSeats(
-//		@RequestHeader("X-Queue-Token") token: String,
-		userId: Long,
+		token: String,
 		seatsHoldRequest: HoldSeatService.Input
 	): ResponseEntity<ApiResponse<HoldSeatService.Output>>
 
@@ -179,29 +156,19 @@ interface SwaggerReservationController {
 			) ]
 		) ]
 	)
-//	@Parameter(
-//		name        = "X-Queue-Token",
-//		`in`        = ParameterIn.HEADER,
-//		description = "대기열 토큰",
-//		required    = true,
-//		schema      = Schema(
-//			type    = "string",
-//			format  = "encoded",
-//			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
-//		)
-//	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "X-Queue-Token",
 		`in`        = ParameterIn.HEADER,
-		description = "클라이언트 식별자",
+		description = "대기열 토큰",
 		required    = true,
 		schema      = Schema(
-			type    = "number",
+			type    = "string",
+			format  = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
 		)
 	)
 	fun confirmedReservation(
-//		@RequestHeader("X-Queue-Token") token: String,
-		userId: Long,
+		token: String,
 		reservationRequest: ConfirmReservationService.Input
 	): ResponseEntity<ApiResponse<ConfirmReservationService.Output>>
 }
