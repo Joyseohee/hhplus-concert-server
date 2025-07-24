@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/reservations")
 class ReservationController(
     val listConcertService: ListConcertService,
+    val listSeatService: ListSeatService,
 )  {
 
     @GetMapping("/concerts")
@@ -37,4 +38,24 @@ class ReservationController(
             )
         )
     }
+
+
+    @GetMapping("/concerts/{concertId}/seats")
+     fun getSeats(
+        //        token: String,
+        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+        @PathVariable(required = true) concertId: Long
+    ): ResponseEntity<ApiResponse<ListSeatService.Output>> {
+
+        val seats = listSeatService.listAvailableSeats(concertId, userId)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                code = "SUCCESS",
+                message = "좌석 조회 성공",
+                data = seats
+            )
+        )
+    }
+
 }
