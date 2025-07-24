@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component
 class SeatHoldTable : SeatHoldRepository {
 	private val table = HashMap<Long, SeatHold>()
 
+	override fun findAll(): List<SeatHold> {
+		Thread.sleep(Math.random().toLong() * 200L)
+		return table.values.toList()
+	}
+
 	override fun findById(id: Long): SeatHold? {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table[id]

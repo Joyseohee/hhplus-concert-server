@@ -2,12 +2,14 @@ package kr.hhplus.be.server.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.extensions.spring.SpringExtension
 import io.mockk.every
 import io.mockk.mockk
 import kr.hhplus.be.server.service.ConfirmReservationService
 import kr.hhplus.be.server.service.HoldSeatService
 import kr.hhplus.be.server.service.ListConcertService
 import kr.hhplus.be.server.service.ListSeatService
+import kr.hhplus.be.server.service.validation.ValidateQueueTokenService
 import kr.hhplus.be.server.support.error.GlobalExceptionHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -26,6 +28,7 @@ class ReserveMockConfig {
 	@Bean fun confirmReservationService() = mockk<ConfirmReservationService>(relaxed = true)
 	@Bean fun concertService() = mockk<ListConcertService>(relaxed = true)
 	@Bean fun seatService() = mockk<ListSeatService>(relaxed = true)
+	@Bean fun validateQueueTokenService() = mockk<ValidateQueueTokenService>(relaxed = true)
 }
 
 @WebMvcTest(ReservationController::class)
@@ -37,7 +40,9 @@ class ReservationControllerTest @Autowired constructor(
 	private val confirmReservationService: ConfirmReservationService,
 	private val concertService: ListConcertService,
 	private val seatService: ListSeatService,
+	private val validateQueueTokenService: ValidateQueueTokenService
 ) : BehaviorSpec({
+	extension(SpringExtension)
 
 	given("좌석 점유 요청이 있을 때") {
 		`when`("유효한 HoldSeatService.Input이 전송되면") {
@@ -50,7 +55,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("X-Client-Id", "123")
+					header("X-Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -62,7 +67,7 @@ class ReservationControllerTest @Autowired constructor(
 		`when`("유효하지 않은 HoldSeatService.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("X-Client-Id", 123)
+					header("X-Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -84,7 +89,7 @@ class ReservationControllerTest @Autowired constructor(
 				} returns ConfirmReservationService.Output(1L, 1L, 130000)
 
 				mockMvc.post("/api/v1/reservations/") {
-					header("X-Client-Id", "123")
+					header("X-Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -96,7 +101,7 @@ class ReservationControllerTest @Autowired constructor(
 		`when`("유효하지 않은 ConfirmReservationService.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/") {
-					header("X-Client-Id", 123)
+					header("X-Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -129,6 +134,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts") {
+					header("X-Queue-Token", "valid-token")
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }
@@ -151,7 +157,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts/1/seats") {
-					header("X-Client-Id", "123")
+					header("X-Queue-Token", "valid-token")
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }

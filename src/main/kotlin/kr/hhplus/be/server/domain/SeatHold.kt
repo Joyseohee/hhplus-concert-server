@@ -66,4 +66,12 @@ data class SeatHold private constructor(
 	fun isExpired(): Boolean {
 		return status == Status.EXPIRED || Instant.now().isAfter(expiresAt)
 	}
+
+	fun expireIfNeeded(now: Instant = Instant.now()): SeatHold {
+		return if (expiresAt != null && expiresAt.isBefore(now) && status != Status.EXPIRED) {
+			this.copy(status = Status.EXPIRED)
+		} else {
+			this
+		}
+	}
 }

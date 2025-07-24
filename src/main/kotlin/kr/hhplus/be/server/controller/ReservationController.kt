@@ -6,6 +6,7 @@ import kr.hhplus.be.server.service.ConfirmReservationService
 import kr.hhplus.be.server.service.HoldSeatService
 import kr.hhplus.be.server.service.ListConcertService
 import kr.hhplus.be.server.service.ListSeatService
+import kr.hhplus.be.server.service.validation.ValidateQueueTokenService
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,83 +20,87 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/reservations")
 class ReservationController(
-    val listConcertService: ListConcertService,
-    val listSeatService: ListSeatService,
-    val holdSeatService: HoldSeatService,
-	val confirmReservationService: ConfirmReservationService
+	val listConcertService: ListConcertService,
+	val listSeatService: ListSeatService,
+	val holdSeatService: HoldSeatService,
+	val confirmReservationService: ConfirmReservationService,
+
+	val validateQueueTokenService: ValidateQueueTokenService
 ) : SwaggerReservationController {
 
-    @GetMapping("/concerts")
-    override fun getConcerts(
-//		token: String
+	@GetMapping("/concerts")
+	override fun getConcerts(
+		@RequestHeader(name = "X-Queue-Token", required = true) token: String
 	): ResponseEntity<ApiResponse<ListConcertService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
-        val concerts = listConcertService.listConcerts()
+		val concerts = listConcertService.listConcerts()
 
-        return ResponseEntity.ok(
-            ApiResponse(
-                code = "SUCCESS",
-                message = "조회 성공",
-                data = concerts
-            )
-        )
-    }
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "조회 성공",
+				data = concerts
+			)
+		)
+	}
 
-    @GetMapping("/concerts/{concertId}/seats")
-    override fun getSeats(
-//        token: String,
-        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
-        @PathVariable(required = true) concertId: Long
-    ): ResponseEntity<ApiResponse<ListSeatService.Output>> {
+	@GetMapping("/concerts/{concertId}/seats")
+	override fun getSeats(
+		@RequestHeader(name = "X-Queue-Token", required = true) token: String,
+		@PathVariable(required = true) concertId: Long
+	): ResponseEntity<ApiResponse<ListSeatService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
-        val seats = listSeatService.listAvailableSeats(concertId, userId)
+		val seats = listSeatService.listAvailableSeats(concertId, validateToken.userId)
 
-        return ResponseEntity.ok(
-            ApiResponse(
-                code = "SUCCESS",
-                message = "좌석 조회 성공",
-                data = seats
-            )
-        )
-    }
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "좌석 조회 성공",
+				data = seats
+			)
+		)
+	}
 
-    @PostMapping("/concerts/{concertId}/seats/hold")
-    override fun holdSeats(
-//        token: String,
-        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
-        @RequestBody seatsHoldRequest: HoldSeatService.Input
-    ): ResponseEntity<ApiResponse<HoldSeatService.Output>> {
+	@PostMapping("/concerts/{concertId}/seats/hold")
+	override fun holdSeats(
+        @RequestHeader(name = "X-Queue-Token", required = true) token: String,
+		@RequestBody seatsHoldRequest: HoldSeatService.Input
+	): ResponseEntity<ApiResponse<HoldSeatService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
 
-        val holdSeat = holdSeatService.holdSeat(
-            userId = userId,
-            input = seatsHoldRequest,
-        )
+		val holdSeat = holdSeatService.holdSeat(
+			userId = validateToken.userId,
+			input = seatsHoldRequest,
+		)
 
-        return ResponseEntity.ok(
-            ApiResponse(
-                code = "SUCCESS",
-                message = "좌석 점유 성공",
-                data = holdSeat
-            )
-        )
-    }
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "좌석 점유 성공",
+				data = holdSeat
+			)
+		)
+	}
 
-    @PostMapping("/")
-    override fun confirmedReservation(
-//        token: String,
-        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
-        @RequestBody reservationRequest: ConfirmReservationService.Input
-    ): ResponseEntity<ApiResponse<ConfirmReservationService.Output>> {
-        val reservation = confirmReservationService.confirmReservation(
-            userId = userId,
-            input = reservationRequest
-        )
-        return ResponseEntity.ok(
-            ApiResponse(
-                code = "SUCCESS",
-                message = "예약 확정 성공",
-                data = reservation
-            )
-        )
-    }
+	@PostMapping("/")
+	override fun confirmedReservation(
+        @RequestHeader(name = "X-Queue-Token", required = true) token: String,
+		@RequestBody reservationRequest: ConfirmReservationService.Input
+	): ResponseEntity<ApiResponse<ConfirmReservationService.Output>> {
+		val validateToken = validateQueueTokenService.validateToken(token)
+
+		val reservation = confirmReservationService.confirmReservation(
+			userId = validateToken.userId,
+			input = reservationRequest
+		)
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "예약 확정 성공",
+				data = reservation
+			)
+		)
+	}
 }
