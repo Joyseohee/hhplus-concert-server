@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 class ReservationController(
     val listConcertService: ListConcertService,
     val listSeatService: ListSeatService,
+    val holdSeatService: HoldSeatService,
 )  {
 
     @GetMapping("/concerts")
@@ -57,5 +58,28 @@ class ReservationController(
             )
         )
     }
+
+
+    @PostMapping("/concerts/{concertId}/seats/hold")
+    fun holdSeats(
+        //        token: String,
+        @RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+        @RequestBody seatsHoldRequest: HoldSeatService.Input
+    ): ResponseEntity<ApiResponse<HoldSeatService.Output>> {
+
+        val holdSeat = holdSeatService.holdSeat(
+            userId = userId,
+            input = seatsHoldRequest,
+        )
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                code = "SUCCESS",
+                message = "좌석 점유 성공",
+                data = holdSeat
+            )
+        )
+    }
+
 
 }
