@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.controller.dto.*
 import kr.hhplus.be.server.service.ConfirmReservationService
 import kr.hhplus.be.server.service.HoldSeatService
 import kr.hhplus.be.server.service.ListConcertService

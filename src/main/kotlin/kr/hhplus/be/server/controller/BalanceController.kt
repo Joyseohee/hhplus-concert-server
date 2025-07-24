@@ -15,11 +15,12 @@ import java.util.*
 
 @RestController
 @RequestMapping("/api/v1/balance")
-class BalanceController2(
+class BalanceController(
 	private val getBalanceService: GetBalanceService,
-) {
+	private val chargeBalanceService: ChargeBalanceService
+) : SwaggerBalanceController {
 	@GetMapping("/")
-	fun getBalance(
+	override fun getBalance(
 		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
 	): ResponseEntity<ApiResponse<GetBalanceService.Output>>{
 		val balance = getBalanceService.getBalance(GetBalanceService.Input(userId))
@@ -28,6 +29,22 @@ class BalanceController2(
 			ApiResponse(
 				code = "SUCCESS",
 				message = "잔액 조회 성공",
+				data = balance
+			)
+		)
+	}
+
+	@PostMapping("/charge")
+	override fun chargeBalance(
+		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+		@RequestBody balanceRequest: ChargeBalanceService.Input
+	): ResponseEntity<ApiResponse<ChargeBalanceService.Output>> {
+		val balance = chargeBalanceService.chargeBalance(userId, balanceRequest)
+		// 비즈니스 로직 구현
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "충전 성공",
 				data = balance
 			)
 		)
