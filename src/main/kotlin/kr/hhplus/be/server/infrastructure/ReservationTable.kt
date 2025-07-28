@@ -3,10 +3,11 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.Reservation
 import kr.hhplus.be.server.domain.ReservationRepository
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class ReservationTable : ReservationRepository {
-	private val table = HashMap<Long, Reservation>()
+	private val table = ConcurrentHashMap<Long, Reservation>()
 
 	override fun findById(id: Long): Reservation? {
 		Thread.sleep(Math.random().toLong() * 200L)

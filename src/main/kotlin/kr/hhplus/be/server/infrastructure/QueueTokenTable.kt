@@ -3,10 +3,12 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.QueueToken
 import kr.hhplus.be.server.domain.QueueTokenRepository
 import org.springframework.stereotype.Component
+import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class QueueTokenTable : QueueTokenRepository {
-    private val table = HashMap<Long, QueueToken>()
+    private val table = ConcurrentHashMap<Long, QueueToken>()
 
     override fun findAll(): List<QueueToken> {
         Thread.sleep(Math.random().toLong() * 200L)

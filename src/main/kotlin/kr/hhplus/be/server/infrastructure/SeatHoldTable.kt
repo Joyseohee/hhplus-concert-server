@@ -3,10 +3,11 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.SeatHold
 import kr.hhplus.be.server.domain.SeatHoldRepository
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class SeatHoldTable : SeatHoldRepository {
-	private val table = HashMap<Long, SeatHold>()
+	private val table = ConcurrentHashMap<Long, SeatHold>()
 
 	override fun findAll(): List<SeatHold> {
 		Thread.sleep(Math.random().toLong() * 200L)

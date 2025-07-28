@@ -3,10 +3,11 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.BalanceTransaction
 import kr.hhplus.be.server.domain.BalanceTransactionRepository
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class BalanceTransactionsTable : BalanceTransactionRepository {
-    private val table = HashMap<Long, BalanceTransaction>()
+    private val table = ConcurrentHashMap<Long, BalanceTransaction>()
 
     override fun findById(id: Long): BalanceTransaction? {
         Thread.sleep(Math.random().toLong() * 200L)

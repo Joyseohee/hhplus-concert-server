@@ -2,15 +2,13 @@ package kr.hhplus.be.server.infrastructure
 
 import kr.hhplus.be.server.domain.Concert
 import kr.hhplus.be.server.domain.ConcertRepository
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class ConcertTable(
-    @Value("\${spring.profiles.active:default}") private val activeProfile: String
-) : ConcertRepository {
-    private val table = HashMap<Long, Concert>()
+class ConcertTable : ConcertRepository {
+    private val table = ConcurrentHashMap<Long, Concert>()
 
     init {
         // 초기 데이터 설정

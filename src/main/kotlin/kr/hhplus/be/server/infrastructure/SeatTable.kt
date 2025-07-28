@@ -3,10 +3,11 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.Seat
 import kr.hhplus.be.server.domain.SeatRepository
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class SeatTable : SeatRepository {
-    private val table = HashMap<Long, Seat>()
+    private val table = ConcurrentHashMap<Long, Seat>()
 
     init {
         // 초기 데이터 설정 (예시)

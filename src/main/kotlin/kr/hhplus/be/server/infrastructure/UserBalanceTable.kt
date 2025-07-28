@@ -3,10 +3,11 @@ package kr.hhplus.be.server.infrastructure
 import kr.hhplus.be.server.domain.UserBalance
 import kr.hhplus.be.server.domain.UserBalanceRepository
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class UserBalanceTable : UserBalanceRepository {
-    private val table = HashMap<Long, UserBalance>()
+    private val table = ConcurrentHashMap<Long, UserBalance>()
 
     init {
         // Initialize with some dummy data
