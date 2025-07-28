@@ -25,19 +25,16 @@ class ConfirmReservationService(
         val seatHold = seatHoldRepository.findBySeatId(input.seatId)
             ?: throw IllegalArgumentException("유효하지 않은 좌석 예약입니다.")
 
-        // 좌석 점유 상태 갱신
-        val checkedSeatHold = seatHold.expireIfNeeded()
-        if (checkedSeatHold.status == SeatHold.Status.EXPIRED && checkedSeatHold.status != SeatHold.Status.EXPIRED) {
-            seatHoldRepository.save(checkedSeatHold)
-        }
-        checkedSeatHold.isValid(userId)
+        // 좌석 점유 상태 갱신 - todo : 낙관적 lock을 사용하여 동시성 문제 해결
+        val reserveSeatHold = seatHold.reserved(userId)
+        seatHoldRepository.save(reserveSeatHold)
 
         // 좌석 정보 확인
-        val seat = seatRepository.findById(checkedSeatHold.seatId)
+        val seat = seatRepository.findById(reserveSeatHold.seatId)
             ?: throw IllegalArgumentException("존재하지 않는 좌석입니다.")
 
         // 사용자 검증 및 결제
-        val userBalance = userBalanceRepository.findById(checkedSeatHold.userId)
+        val userBalance = userBalanceRepository.findById(userId)
             ?: throw IllegalArgumentException("사용자가 존재하지 않습니다.")
         userBalanceRepository.save(
             userBalance.use(seat.price)
@@ -47,29 +44,16 @@ class ConfirmReservationService(
         val reservation = reservationRepository.save(
             Reservation.create(
                 reservationUuid = input.reservationUuid,
-                userId = checkedSeatHold.userId,
-                concertId = checkedSeatHold.concertId,
-                seatId = checkedSeatHold.seatId,
+                userId = userId,
+                concertId = reserveSeatHold.concertId,
+                seatId = reserveSeatHold.seatId,
                 reservedAt = Instant.now(),
                 price = seat.price
             )
         )
 
-        // 점유상태 업데이트
-        seatHoldRepository.save(
-            SeatHold.create(
-                seatHoldId = seatHold.seatHoldId,
-                seatHoldUuid = seatHold.seatHoldUuid,
-                userId = seatHold.userId,
-                concertId = seatHold.concertId,
-                seatId = seatHold.seatId,
-                expiresAt = seatHold.expiresAt,
-                status = SeatHold.Status.RESERVED
-            )
-        )
-
         return Output(
-            concertId = seatHold.concertId,
+            concertId = reservation.concertId,
             seatId = reservation.seatId,
             price = reservation.price
         )

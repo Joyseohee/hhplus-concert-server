@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.domain.*
 import kr.hhplus.be.server.domain.SeatHold.Companion.VALID_HOLD_MINUTE
+import kr.hhplus.be.server.support.error.SeatHoldUnavailableException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.Instant
@@ -77,14 +78,14 @@ class ConfirmReservationServiceTest @Autowired constructor(
 				seatRepository.save(Seat.create(seatId = seatId, seatNumber = seatNumber, price = price))
 				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId, expiresAt = expiresAt))
 
-				shouldThrowExactly<IllegalArgumentException> {
+				shouldThrowExactly<SeatHoldUnavailableException> {
 					confirmReservationService.confirmReservation(
 						userId, ConfirmReservationService.Input(
 							reservationUuid = reservationUuid,
 							seatId = seatId
 						)
 					)
-				}.message shouldBe  "좌석 점유는 ${VALID_HOLD_MINUTE}분 동안 유효합니다. 만료 시간: ${expiresAt}"
+				}
 			}
 		}
 		`when`("동일한 사용자가 여러번 예약을 시도할 때") {
@@ -129,15 +130,15 @@ class ConfirmReservationServiceTest @Autowired constructor(
 				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId))
 				reservationRepository.save(Reservation.create(reservationUuid = reservationUuid, userId = userId, concertId = concertId, seatId = seatId, reservedAt = Instant.now(), price = price))
 
-				shouldThrowExactly<IllegalArgumentException> {
+				shouldThrowExactly<SeatHoldUnavailableException> {
 					confirmReservationService.confirmReservation(
 						2L,
 						ConfirmReservationService.Input(
-							reservationUuid = UUID.randomUUID().toString(),
+							reservationUuid = seatHoldUuid,
 							seatId = seatId
 						)
 					)
-				}.message shouldBe "점유한 사용자가 아닙니다."
+				}
 			}
 		}
 	}

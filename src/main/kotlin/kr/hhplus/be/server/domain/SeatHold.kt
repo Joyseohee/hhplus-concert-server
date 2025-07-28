@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain
 
+import kr.hhplus.be.server.support.error.SeatHoldUnavailableException
 import java.time.Instant
 
 data class SeatHold private constructor(
@@ -37,15 +38,47 @@ data class SeatHold private constructor(
 				status = status
 			)
 		}
+
+		fun held(
+			seatHoldId: Long,
+			seatHoldUuid: String,
+			userId: Long,
+			concertId: Long,
+			seatId: Long,
+			expiresAt: Instant = Instant.now().plusSeconds(VALID_HOLD_MINUTE * 60),
+		): SeatHold {
+			if (expiresAt.isBefore(Instant.now())) {
+				throw SeatHoldUnavailableException("좌석 점유 제한 시각은 현재 시각 이후여야 합니다. 현재: ${Instant.now()}, 만료 시각: $expiresAt")
+			}
+
+			return create(
+				seatHoldId = seatHoldId,
+				seatHoldUuid = seatHoldUuid,
+				userId = userId,
+				concertId = concertId,
+				seatId = seatId,
+				expiresAt = expiresAt,
+				status = Status.HELD
+			)
+		}
 	}
 
-	// 점유 유효성 검증
-	fun isValid(userId: Long): Boolean {
-		require(!isExpired()) { "좌석 점유는 ${VALID_HOLD_MINUTE}분 동안 유효합니다. 만료 시간: ${expiresAt}" }
-		require(!isReserved()) { "이미 예매된 좌석입니다." }
-		require(this.userId == userId) { "점유한 사용자가 아닙니다." }
+	fun reserved(userId: Long): SeatHold {
+		isValid(userId)
+		return this.copy(status = Status.RESERVED)
+	}
 
-		return true
+	fun expired(userId: Long? = null, isScheduler: Boolean? = false): SeatHold {
+		require(isReserved() || isExpired()) { "좌석 점유가 만료되지 않았습니다." }
+		if (userId == null && isScheduler == false) {
+			throw IllegalArgumentException("좌석을 점유한 사용자가 아닙니다.")
+		}
+
+		if (userId != null && this.userId != userId) {
+			throw IllegalArgumentException("좌석을 점유한 사용자가 아닙니다.")
+		}
+
+		return this.copy(status = Status.EXPIRED)
 	}
 
 	fun isAvailable(userId: Long): Boolean {
@@ -55,23 +88,22 @@ data class SeatHold private constructor(
 		return true
 	}
 
-	fun isHeld(): Boolean {
+	// 점유 유효성 검증
+	private fun isValid(userId: Long) {
+		if (isExpired()) throw SeatHoldUnavailableException("좌석 점유는 ${VALID_HOLD_MINUTE}분 동안 유효합니다. 만료 시간: ${expiresAt}")
+		if (isReserved()) throw SeatHoldUnavailableException("이미 예매된 좌석입니다.")
+		if (this.userId != userId) throw SeatHoldUnavailableException("점유한 사용자가 아닙니다.")
+	}
+
+	private fun isHeld(): Boolean {
 		return status == Status.HELD
 	}
 
-	fun isReserved(): Boolean {
+	private fun isReserved(): Boolean {
 		return status == Status.RESERVED
 	}
 
-	fun isExpired(): Boolean {
+	private fun isExpired(): Boolean {
 		return status == Status.EXPIRED || Instant.now().isAfter(expiresAt)
-	}
-
-	fun expireIfNeeded(now: Instant = Instant.now()): SeatHold {
-		return if (expiresAt != null && expiresAt.isBefore(now) && status != Status.EXPIRED) {
-			this.copy(status = Status.EXPIRED)
-		} else {
-			this
-		}
 	}
 }

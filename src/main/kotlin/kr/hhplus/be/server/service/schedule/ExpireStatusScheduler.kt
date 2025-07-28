@@ -32,7 +32,7 @@ class ExpireStatusScheduler(
 	    // SeatHold 만료 처리
         val holds = seatHoldRepository.findAll()
         holds.forEach { hold ->
-            val expired = hold.expireIfNeeded()
+            val expired = hold.expired()
             if (expired.status == SeatHold.Status.EXPIRED && hold.status != SeatHold.Status.EXPIRED) {
                 seatHoldRepository.save(expired)
             }
