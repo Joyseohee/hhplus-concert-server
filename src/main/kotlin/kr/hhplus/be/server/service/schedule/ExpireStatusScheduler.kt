@@ -1,9 +1,9 @@
-package kr.hhplus.be.server.service
+package kr.hhplus.be.server.service.schedule
 
-import kr.hhplus.be.server.domain.QueueTokenRepository
-import kr.hhplus.be.server.domain.SeatHoldRepository
 import kr.hhplus.be.server.domain.QueueToken
+import kr.hhplus.be.server.domain.QueueTokenRepository
 import kr.hhplus.be.server.domain.SeatHold
+import kr.hhplus.be.server.domain.SeatHoldRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -11,8 +11,8 @@ import java.time.Instant
 
 @Component
 class ExpireStatusScheduler(
-    private val queueTokenRepository: QueueTokenRepository,
-    private val seatHoldRepository: SeatHoldRepository
+	private val queueTokenRepository: QueueTokenRepository,
+	private val seatHoldRepository: SeatHoldRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,4 +40,3 @@ class ExpireStatusScheduler(
         log.info("스케줄러 종료 :: ${Instant.now()}")
     }
 }
-
