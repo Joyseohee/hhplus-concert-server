@@ -14,29 +14,25 @@ class ExpireStatusScheduler(
 	private val queueTokenRepository: QueueTokenRepository,
 	private val seatHoldRepository: SeatHoldRepository
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+	private val log = LoggerFactory.getLogger(javaClass)
 
-    // 1분마다 만료 상태 갱신
-    @Scheduled(fixedDelay = 60_000)
-    fun expireStatuses() {
-        log.info("스케줄러 실행 시점 :: ${Instant.now()}")
-        // QueueToken 만료 처리
-        val tokens = queueTokenRepository.findAll()
-        tokens.forEach { token ->
-            val expired = token.expireIfNeeded()
-            if (expired.status == QueueToken.Status.EXPIRED && token.status != QueueToken.Status.EXPIRED) {
-                queueTokenRepository.save(expired)
-            }
-        }
+	// 1분마다 만료 상태 갱신
+	@Scheduled(fixedDelay = 60_000)
+	fun expireStatuses() {
+		log.info("스케줄러 실행 시점 :: ${Instant.now()}")
+		// QueueToken 만료 처리
+		val tokens = queueTokenRepository.findTokensToExpire()
+		tokens.forEach { token ->
+			val expired = token.expire()
+			queueTokenRepository.save(expired)
+		}
 
-	    // SeatHold 만료 처리
-        val holds = seatHoldRepository.findAll()
-        holds.forEach { hold ->
-            val expired = hold.expired()
-            if (expired.status == SeatHold.Status.EXPIRED && hold.status != SeatHold.Status.EXPIRED) {
-                seatHoldRepository.save(expired)
-            }
-        }
-        log.info("스케줄러 종료 :: ${Instant.now()}")
-    }
+		// SeatHold 만료 처리
+		val holds = seatHoldRepository.findHoldsToExpire()
+		holds.forEach { hold ->
+			val expired = hold.expired(isScheduler = true)
+			seatHoldRepository.save(expired)
+		}
+		log.info("스케줄러 종료 :: ${Instant.now()}")
+	}
 }

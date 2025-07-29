@@ -13,6 +13,8 @@ interface QueueTokenRepository {
 
 	fun findTokenWithPosition(token: String): Pair<QueueToken, Int>?
 
+	fun findTokensToExpire(): List<QueueToken>
+
 	fun countByStatus(active: QueueToken.Status): Int
 
 	fun save(queueToken: QueueToken): QueueToken

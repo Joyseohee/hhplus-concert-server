@@ -34,6 +34,12 @@ class SeatHoldTable : SeatHoldRepository {
 		return table.values.filter { it.concertId == id }
 	}
 
+	override fun findHoldsToExpire(): List<SeatHold> {
+		return table.values
+			.filter { it.expiresAt.isBefore(java.time.Instant.now()) && it.status != SeatHold.Status.EXPIRED }
+			.sortedBy { it.expiresAt }
+	}
+
 	override fun save(
 		seatHold: SeatHold
 	): SeatHold {

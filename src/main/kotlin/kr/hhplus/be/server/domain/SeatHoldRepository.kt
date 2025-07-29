@@ -11,6 +11,8 @@ interface SeatHoldRepository {
 
 	fun findAllByConcertId(id: Long): List<SeatHold>
 
+	fun findHoldsToExpire(): List<SeatHold>
+
 	fun save(seatHold: SeatHold): SeatHold
 
 	fun clear()

@@ -62,6 +62,13 @@ class QueueTokenTable : QueueTokenRepository {
 		return table.values.count { it.status == active }
 	}
 
+    override fun findTokensToExpire(): List<QueueToken> {
+        return table.values
+            .filter { it.expiresAt.isBefore(Instant.now()) && it.status != QueueToken.Status.EXPIRED }
+            .sortedBy { it.expiresAt }
+            .toList()
+    }
+
     override fun save(
         queueToken: QueueToken
     ): QueueToken {
