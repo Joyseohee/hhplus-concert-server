@@ -2,44 +2,35 @@ package kr.hhplus.be.server.service
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.QueueToken
-import kr.hhplus.be.server.domain.QueueToken.Companion.MAX_ACTIVE_COUNT
 import kr.hhplus.be.server.domain.QueueTokenRepository
-import kr.hhplus.be.server.domain.UserBalanceRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
 class RequestQueueTokenService(
-	private val userBalanceRepository: UserBalanceRepository,
 	private val queueTokenRepository: QueueTokenRepository
 ) {
-	fun createToken(userId: Long): Output? {
-		userBalanceRepository.findById(userId)
-			?: throw IllegalArgumentException("사용자를 찾을 수 없습니다.")
+	fun createToken(userId: Long): Output {
+		val newToken = QueueToken.create(userId = userId)
 
 		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
 
-		val newToken = QueueToken.create(userId = userId).apply {
-			activate(activeCount)
-		}
+		val activatedIfPossibleToken = newToken.activate(activeCount + 1)
 
-		val token = queueTokenRepository.save(newToken)
+		val token = queueTokenRepository.save(activatedIfPossibleToken)
 
 		val position = queueTokenRepository.findPositionByToken(token.token)
-			?: throw IllegalArgumentException("토큰 정보를 찾을 수 없습니다.")
 
-		return queueTokenRepository.findById(userId)?.let { queueToken ->
-			Output(
-				token = queueToken.token,
-				status = queueToken.status.name,
-				position = position,
-				expiresAt = queueToken.expiresAt
-			)
-		}
+		return Output(
+			token = token.token,
+			status = token.status.name,
+			position = position ?: 0,
+			expiresAt = token.expiresAt
+		)
 	}
 
 	@Schema(description = "토큰 발급 응답 DTO")
-	data class Output (
+	data class Output(
 		@Schema(description = "토큰", example = "abcac10b-58cc-4372-a567-0e02b2c3d479")
 		val token: String,
 		@Schema(description = "토큰 상태", example = "WAITING")

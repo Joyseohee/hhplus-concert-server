@@ -1,36 +1,29 @@
 package kr.hhplus.be.server.service
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.domain.QueueToken
 import kr.hhplus.be.server.domain.QueueTokenRepository
-import kr.hhplus.be.server.domain.UserBalanceRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
 class GetQueueTokenService(
-	private val userBalanceRepository: UserBalanceRepository,
 	private val queueTokenRepository: QueueTokenRepository
 ) {
 	fun getToken(token: String): Output {
-		val (queueToken, position) = queueTokenRepository.findTokenWithPosition(token)
+		val queueToken = queueTokenRepository.findByToken(token)
 			?: throw IllegalArgumentException("토큰을 찾을 수 없습니다.")
 
-		// 만료 체크 및 상태 갱신
-		val checkedToken = queueToken.expireIfNeeded()
-		if (checkedToken.status == QueueToken.Status.EXPIRED && queueToken.status != QueueToken.Status.EXPIRED) {
-			queueTokenRepository.save(checkedToken)
+		if (!queueToken.isValid()) {
+			throw IllegalArgumentException("토큰이 만료되었습니다.")
 		}
 
-		userBalanceRepository.findById(queueToken.userId)
-			?: throw IllegalArgumentException("사용자를 찾을 수 없습니다.")
-
-		checkedToken.isValid()
+		val position = queueTokenRepository.findPositionByToken(token)
+			?: throw IllegalArgumentException("토큰의 대기 순번을 찾을 수 없습니다.")
 
 		return Output(
-			status = checkedToken.status.name,
+			status = queueToken.status.name,
 			position = position,
-			expiresAt = checkedToken.expiresAt
+			expiresAt = queueToken.expiresAt
 		)
 	}
 

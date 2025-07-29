@@ -7,7 +7,6 @@ import kr.hhplus.be.server.domain.QueueToken
 import kr.hhplus.be.server.domain.QueueTokenRepository
 import kr.hhplus.be.server.domain.UserBalance
 import kr.hhplus.be.server.domain.UserBalanceRepository
-import kr.hhplus.be.server.service.validation.ValidateQueueTokenService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.Instant
@@ -65,27 +64,6 @@ class GetQueueTokenServiceTest @Autowired constructor(
             then("예외가 발생한다") {
 	            shouldThrowExactly<IllegalArgumentException> {
 		            getQueueTokenService.getToken(notExistToken)
-	            }
-            }
-        }
-    }
-
-    given("존재하지 않는 유저가 주어졌을 때") {
-        val token = UUID.randomUUID().toString()
-        beforeTest {
-            queueTokenRepository.save(
-                QueueToken.Companion.create(
-                    userId = invalidUserId,
-                    token = token,
-                    expiresAt = Instant.now().plusSeconds(60),
-                    status = QueueToken.Status.WAITING
-                )
-            )
-        }
-        `when`("getToken을 호출하면") {
-            then("예외가 발생한다") {
-	            shouldThrowExactly<IllegalArgumentException> {
-		            getQueueTokenService.getToken(token)
 	            }
             }
         }
