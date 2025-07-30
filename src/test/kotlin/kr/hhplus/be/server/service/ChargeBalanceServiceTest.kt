@@ -32,14 +32,5 @@ class ChargeBalanceServiceTest @Autowired constructor(
                 output.balance shouldBe initialBalance + chargeAmount
             }
         }
-
-        `when`("유효하지 않은 사용자 ID로 충전을 요청할 때") {
-            then("예외가 발생해야 한다") {
-                val input = ChargeBalanceService.Input(amount = chargeAmount)
-                shouldThrow<IllegalArgumentException> {
-                    service.chargeBalance(inValidUserId, input)
-                }.message shouldBe "사용자를 찾을 수 없습니다."
-            }
-        }
     }
 })

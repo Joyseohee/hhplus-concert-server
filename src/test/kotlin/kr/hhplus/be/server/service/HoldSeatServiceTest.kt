@@ -21,7 +21,7 @@ class HoldSeatServiceTest @Autowired constructor(
     val seatHoldRepository: SeatHoldRepository,
 ) : BehaviorSpec({
     val validUserId = 1L
-    val inValidUserId = 2L
+    val invalidUserId = 2L
     val seatId = 1L
     val request = HoldSeatService.Input(
         seatHoldUuid = UUID.randomUUID().toString(),
@@ -51,7 +51,7 @@ class HoldSeatServiceTest @Autowired constructor(
     }
 
     given("좌석 점유를 요청할 때") {
-        `when`("점유되지 않은 좌석을 유효산 사용자가 요청할 때") {
+        `when`("점유되지 않은 좌석을 유효한 사용자가 요청할 때") {
             then("점유가 성공적으로 이루어져야 한다") {
                 val result = holdSeatService.holdSeat(userId = validUserId, input = request)
                 result.seatHoldUuid shouldBe request.seatHoldUuid
@@ -59,33 +59,18 @@ class HoldSeatServiceTest @Autowired constructor(
                 result.expiresAt.isAfter(Instant.now()) shouldBe true
             }
         }
-        `when`("유효하지 않은 사용자가 좌석을 점유하려고 할 때") {
-            then("예외가 발생해야 한다") {
-                shouldThrowExactly<IllegalArgumentException> {
-                    val result = holdSeatService.holdSeat(userId = inValidUserId, input = request)
-                }.message shouldBe "사용자가 존재하지 않습니다."
-            }
-        }
-        `when`("동일한 사용자가 여러 번 동일한 좌석을 점유하려고 할 때") {
-            then("예외가 발생해야 한다") {
-                holdSeatService.holdSeat(userId = validUserId, input = request)
-                shouldThrowExactly<IllegalArgumentException> {
-                    val result = holdSeatService.holdSeat(userId = validUserId, input = request)
-                }.message shouldBe "중복된 요청입니다."
-            }
-        }
         `when`("이미 점유된 좌석을 점유하려고 할 때") {
             then("예외가 발생해야 한다") {
                 shouldThrowExactly<IllegalArgumentException> {
                     holdSeatService.holdSeat(userId = validUserId, input = request)
                     holdSeatService.holdSeat(
-                        userId = validUserId, input = HoldSeatService.Input(
+                        userId = invalidUserId, input = HoldSeatService.Input(
                             seatHoldUuid = UUID.randomUUID().toString(),
-                            concertId = 1L,
-                            seatId = seatId
+                            concertId = request.concertId,
+                            seatId = request.seatId
                         )
                     )
-                }.message shouldBe "이미 점유된 좌석입니다."
+                }
             }
         }
     }

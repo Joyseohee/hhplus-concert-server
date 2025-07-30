@@ -7,13 +7,17 @@ interface SeatHoldRepository {
 
 	fun findByUuid(seatHoldUuid: String): SeatHold?
 
-	fun findBySeatId(seatId: Long): SeatHold?
+	fun findValidSeatHoldBySeatId(seatId: Long): SeatHold?
 
 	fun findAllByConcertId(id: Long): List<SeatHold>
 
 	fun findHoldsToExpire(): List<SeatHold>
 
 	fun save(seatHold: SeatHold): SeatHold
+
+	fun deleteById(seatHold: SeatHold)
+
+	fun deleteByIds(seatHolds: List<SeatHold>)
 
 	fun clear()
 }

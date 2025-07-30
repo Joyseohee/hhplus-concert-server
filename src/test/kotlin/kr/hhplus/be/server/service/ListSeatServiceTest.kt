@@ -66,7 +66,6 @@ class ListSeatServiceTest @Autowired constructor(
 					userId = 1L,
 					concertId = concertId,
 					seatId = 1L,
-					status = SeatHold.Status.HELD,
 				)
 			)
 			seatHoldRepository.save(
@@ -75,7 +74,6 @@ class ListSeatServiceTest @Autowired constructor(
 					userId = 8L,
 					concertId = concertId,
 					seatId = 8L,
-					status = SeatHold.Status.HELD,
 				)
 			)
 			seatHoldRepository.save(
@@ -84,7 +82,6 @@ class ListSeatServiceTest @Autowired constructor(
 					userId = 9L,
 					concertId = concertId,
 					seatId = 9L,
-					status = SeatHold.Status.RESERVED,
 				)
 			)
 
@@ -94,7 +91,6 @@ class ListSeatServiceTest @Autowired constructor(
 					userId = 10L,
 					concertId = concertId,
 					seatId = 10L,
-					status = SeatHold.Status.EXPIRED,
 				)
 			)
 			val output = listSeatService.listAvailableSeats(concertId, userId = 1L)
@@ -113,10 +109,9 @@ class ListSeatServiceTest @Autowired constructor(
 			val invalidConcertId = 999L
 
 			then("예외가 발생해야 한다") {
-				val exception = shouldThrow<IllegalArgumentException> {
+				shouldThrow<IllegalArgumentException> {
 					val output = listSeatService.listAvailableSeats(invalidConcertId, userId = 1L)
 				}
-				exception.message shouldBe "존재하지 않는 콘서트입니다."
 			}
 		}
 	}

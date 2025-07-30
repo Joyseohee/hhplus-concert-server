@@ -4,54 +4,33 @@ import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.SeatHold
 import kr.hhplus.be.server.domain.SeatHoldRepository
 import kr.hhplus.be.server.domain.SeatRepository
-import kr.hhplus.be.server.domain.UserBalanceRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
 class HoldSeatService(
-	private val userBalanceRepository: UserBalanceRepository,
 	private val seatRepository: SeatRepository,
 	private val seatHoldRepository: SeatHoldRepository
 ) {
 
 	fun holdSeat(input: Input, userId: Long): Output {
-
-		userBalanceRepository.findById(userId)
-			?: throw IllegalArgumentException("사용자가 존재하지 않습니다.")
-
-		// 중복된 요청 방지 로직
-		seatHoldRepository.findByUuid(input.seatHoldUuid)
-			?.let {
-				throw IllegalArgumentException("중복된 요청입니다.")
-			}
-
-		seatHoldRepository.findBySeatId(input.seatId)
-			?.let {
-				throw IllegalArgumentException("이미 점유된 좌석입니다.")
-			}
-
-
 		val seat = seatRepository.findById(input.seatId)
+			?: throw IllegalArgumentException("존재하지 않는 좌석입니다. 좌석 ID: ${input.seatId}")
 
-		if (seat == null) {
-			throw IllegalArgumentException("좌석이 존재하지 않습니다. 좌석 ID: ${input.seatId}")
-		}
-
-		val seatHold = seatHoldRepository.save(
-			seatHold = SeatHold.create(
-				seatHoldUuid = input.seatHoldUuid,
-				userId = userId,
-				concertId = input.concertId,
-				seatId = input.seatId
-			)
+		val newSeatHold = SeatHold.held(
+			seatHoldUuid = input.seatHoldUuid,
+			userId = userId,
+			concertId = input.concertId,
+			seatId = seat.seatId!!
 		)
 
-		// 여기서는 단순히 출력값을 생성합니다.
+		// todo - 동시성 문제 발생 가능 지점 : 좌석에 unique constraint 필요, 점유 만료 후 delete 처리 필요
+		val confirmedSeatHold = seatHoldRepository.save(newSeatHold)
+
 		return Output(
-			seatHoldUuid = seatHold.seatHoldUuid,
-			seatId = seatHold.userId,
-			expiresAt = seatHold.expiresAt
+			seatHoldUuid = confirmedSeatHold.seatHoldUuid,
+			seatId = confirmedSeatHold.userId,
+			expiresAt = confirmedSeatHold.expiresAt
 		)
 	}
 

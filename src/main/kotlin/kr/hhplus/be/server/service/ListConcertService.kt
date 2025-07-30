@@ -11,7 +11,7 @@ class ListConcertService(
 
 	fun listConcerts(): Output {
 		val concerts = concertRepository.findAll()
-			.sortedBy { it.showDateTime } // 날짜순으로 정렬
+			.sortedBy { it.showDateTime }
 
 		return Output(availableDates = concerts.map { concert ->
 			Output.ConcertInfo(

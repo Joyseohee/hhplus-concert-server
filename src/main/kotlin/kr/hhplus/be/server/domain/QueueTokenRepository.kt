@@ -5,7 +5,7 @@ interface QueueTokenRepository {
 
 	fun findById(id: Long): QueueToken?
 
-	fun findByToken(token: String): QueueToken?
+	fun findValidatedByToken(token: String): QueueToken?
 
 	fun findWaitingTokensOrderByCreatedAt(): List<QueueToken>
 

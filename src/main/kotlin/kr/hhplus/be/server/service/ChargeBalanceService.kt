@@ -10,17 +10,14 @@ class ChargeBalanceService(
 ) {
     fun chargeBalance(userId: Long, input: Input): Output {
         val userBalance = userBalanceRepository.findById(userId)
-
-        if (userBalance == null) {
-            throw IllegalArgumentException("사용자를 찾을 수 없습니다.")
-        }
+            ?: throw IllegalArgumentException("사용자가 존재하지 않습니다. 사용자 ID: $userId")
 
         val chargedUserBalance = userBalanceRepository.save(
             userBalance = userBalance.charge(input.amount)
         )
 
         return Output(
-            balance =chargedUserBalance.balance
+            balance = chargedUserBalance.balance
         )
     }
 
@@ -35,5 +32,4 @@ class ChargeBalanceService(
         @Schema(description = "잔액", example = "300000")
         val balance: Long
     )
-
 }

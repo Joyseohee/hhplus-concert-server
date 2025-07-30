@@ -10,12 +10,8 @@ class GetQueueTokenService(
 	private val queueTokenRepository: QueueTokenRepository
 ) {
 	fun getToken(token: String): Output {
-		val queueToken = queueTokenRepository.findByToken(token)
-			?: throw IllegalArgumentException("토큰을 찾을 수 없습니다.")
-
-		if (!queueToken.isValid()) {
-			throw IllegalArgumentException("토큰이 만료되었습니다.")
-		}
+		val queueToken = queueTokenRepository.findValidatedByToken(token)
+			?: throw IllegalArgumentException("토큰을 찾을 수 없습니다: $token")
 
 		val position = queueTokenRepository.findPositionByToken(token)
 			?: throw IllegalArgumentException("토큰의 대기 순번을 찾을 수 없습니다.")

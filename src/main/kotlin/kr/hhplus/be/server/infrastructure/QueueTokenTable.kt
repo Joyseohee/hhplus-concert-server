@@ -20,9 +20,10 @@ class QueueTokenTable : QueueTokenRepository {
 		return table[id]
 	}
 
-	override fun findByToken(token: String): QueueToken? {
+	override fun findValidatedByToken(token: String): QueueToken? {
 		Thread.sleep(Math.random().toLong() * 200L)
-		return table.values.firstOrNull { it.token == token }
+		return table.values
+				.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
 	override fun findWaitingTokensOrderByCreatedAt(): List<QueueToken> {

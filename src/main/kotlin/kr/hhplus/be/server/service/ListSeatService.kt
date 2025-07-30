@@ -13,16 +13,16 @@ class ListSeatService(
 	private val seatHoldRepository: SeatHoldRepository
 ) {
 	fun listAvailableSeats(concertId: Long, userId: Long): Output {
-		concertRepository.findById(concertId)
-			?: throw IllegalArgumentException("존재하지 않는 콘서트입니다.")
+		val concert = concertRepository.findById(concertId)
+			?: throw IllegalArgumentException("콘서트를 찾을 수 없습니다: concertId=$concertId")
 
-		val seatHolds = seatHoldRepository.findAllByConcertId(concertId)
+		val seatHolds = seatHoldRepository.findAllByConcertId(concert.concertId)
 
 		val seatHoldMap = seatHolds.associateBy { it.seatId }
 
-		val availableSeats = seatRepository.findAll()
+		val seat = seatRepository.findAll()
 
-		if (availableSeats.isEmpty()) {
+		if (seat.isEmpty()) {
 			return Output(
 				concertId = concertId,
 				availableSeats = emptyList()
@@ -31,7 +31,7 @@ class ListSeatService(
 
 		return Output(
 			concertId = concertId,
-			availableSeats = availableSeats.map { seat ->
+			availableSeats = seat.map { seat ->
 				val seatHold = seatHoldMap[seat.seatId]
 				Output.SeatInfo(
 					seatId = seat.seatId!!,

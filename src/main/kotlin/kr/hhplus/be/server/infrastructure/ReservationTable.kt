@@ -23,6 +23,10 @@ class ReservationTable : ReservationRepository {
 		reservation: Reservation
 	): Reservation {
 		Thread.sleep(Math.random().toLong() * 300L)
+		if (table.containsKey(reservation.seatId) && table.containsKey(reservation.concertId)) {
+			throw IllegalArgumentException("이미 예약된 좌석입니다.")
+		}
+
 		val reservationId = reservation.reservationId ?: table.keys.maxOrNull()?.plus(1) ?: 1L
 		val reservation = Reservation.create(
 			reservationId = reservationId,
