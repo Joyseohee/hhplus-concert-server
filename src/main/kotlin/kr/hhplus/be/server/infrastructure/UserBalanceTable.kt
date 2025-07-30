@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.UserBalance
-import kr.hhplus.be.server.domain.UserBalanceRepository
+import kr.hhplus.be.server.domain.model.UserBalance
+import kr.hhplus.be.server.domain.repository.UserBalanceRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 

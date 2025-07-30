@@ -6,8 +6,8 @@ import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import kr.hhplus.be.server.service.GetQueueTokenService
-import kr.hhplus.be.server.service.RequestQueueTokenService
+import kr.hhplus.be.server.application.GetQueueTokenUseCase
+import kr.hhplus.be.server.application.RequestQueueTokenUseCase
 import kr.hhplus.be.server.support.error.GlobalExceptionHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -22,8 +22,8 @@ import java.time.Instant
 
 @TestConfiguration
 class QueueTokenMockConfig {
-    @Bean fun requestQueueTokenService() = mockk<RequestQueueTokenService>(relaxed = true)
-    @Bean fun getQueueTokenService() = mockk<GetQueueTokenService>(relaxed = true)
+    @Bean fun requestQueueTokenUseCase() = mockk<RequestQueueTokenUseCase>(relaxed = true)
+    @Bean fun getQueueTokenUseCase() = mockk<GetQueueTokenUseCase>(relaxed = true)
 }
 
 @WebMvcTest(QueueTokenController::class)
@@ -32,8 +32,8 @@ class QueueTokenControllerTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val objectMapper: ObjectMapper,
 
-    private val requestQueueTokenService: RequestQueueTokenService,
-    private val getQueueTokenService: GetQueueTokenService
+    private val requestQueueTokenUseCase: RequestQueueTokenUseCase,
+    private val getQueueTokenUseCase: GetQueueTokenUseCase
 ) : BehaviorSpec({
     extension(SpringExtension)
 
@@ -41,13 +41,13 @@ class QueueTokenControllerTest @Autowired constructor(
     val invalidUserId = 2L
 
     beforeTest {
-        every { requestQueueTokenService.createToken(validUserId) } returns RequestQueueTokenService.Output(
+        every { requestQueueTokenUseCase.createToken(validUserId) } returns RequestQueueTokenUseCase.Output(
             token = "valid-token",
             status = "WAITING",
             position = 1,
             expiresAt = Instant.now().plusSeconds(3600)
         )
-        every { getQueueTokenService.getToken("valid-token") } returns GetQueueTokenService.Output(
+        every { getQueueTokenUseCase.getToken("valid-token") } returns GetQueueTokenUseCase.Output(
             status = "WAITING",
             position = 1,
             expiresAt = Instant.now().plusSeconds(3600)

@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.service.ChargeBalanceService
-import kr.hhplus.be.server.service.GetBalanceService
+import kr.hhplus.be.server.application.ChargeBalanceUseCase
+import kr.hhplus.be.server.application.GetBalanceUseCase
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -40,7 +40,7 @@ interface SwaggerBalanceController {
 	)
 	fun getBalance(
 		userId: Long
-	): ResponseEntity<ApiResponse<GetBalanceService.Output>>
+	): ResponseEntity<ApiResponse<GetBalanceUseCase.Output>>
 
 	@Operation(summary = "잔액 충전", tags = ["Balance"])
 	@SwaggerApiResponse(responseCode = "200", description = "충전 성공",
@@ -68,7 +68,7 @@ interface SwaggerBalanceController {
 	)
 	fun chargeBalance(
 		userId: Long,
-		balanceRequest: ChargeBalanceService.Input
-	): ResponseEntity<ApiResponse<ChargeBalanceService.Output>>
+		balanceRequest: ChargeBalanceUseCase.Input
+	): ResponseEntity<ApiResponse<ChargeBalanceUseCase.Output>>
 
 }

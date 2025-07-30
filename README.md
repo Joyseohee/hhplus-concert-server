@@ -16,21 +16,24 @@ Kotlin, Spring Boot, Gradle을 기반으로 개발되었으며, 주요 도메인
 * 토큰(`Queue-Token` 헤더)을 추출하고, 검증 결과인 `userId`를 서비스로 전달합니다.
 * 흐름 제어 책임만 갖고 비즈니스 로직은 포함하지 않습니다.
 
-### Service (Usecase Layer)
+### UseCase (Usecase Layer)
 
 * 각 유즈케이스(콘서트 목록 조회, 좌석 조회, 좌석 점유, 예약 확정 등)에 대응하는 **단일 책임의 서비스 클래스**로 구성됩니다.
 * 각 서비스는 **자신의 책임만 수행**하며, **서비스 간 직접 참조를 하지 않습니다**.
 * 서비스 내부에 `Input`, `Output` 클래스를 정의하여 **DTO와 도메인 간 완충지대 역할을 수행**합니다.
 
-### Validation Service (Cross-cutting Concern)
+### Service (Cross-cutting Concern)
 
-* `ValidateQueueTokenService`는 공통 인증 로직을 분리한 서비스로,
+* `ValidateQueueTokenService`는 공통 대기열 토큰 인증 로직을 분리한 서비스로,
 
   * 토큰의 유효성/만료 여부 확인
   * 토큰 상태(`ACTIVE`) 확인
   * `userId` 추출
     등의 책임을 가집니다.
-* 컨트롤러나 각 유즈케이스 서비스에서 의존성 주입을 통해 사용됩니다.
+  * 필터를 통해 토큰이 필요한 모든 요청에 대해 자동으로 적용됩니다.
+
+* `ValidateUserService`는 공통 사용자 유효성 검증 로직을 분리한 서비스입니다.
+  * 필터를 통해 토큰이 없는 모든 요청에 대해 자동으로 적용됩니다.
 
 ### Repository (Persistence Abstraction Layer)
 
@@ -39,21 +42,34 @@ Kotlin, Spring Boot, Gradle을 기반으로 개발되었으며, 주요 도메인
 
   * 초기에는 InMemory
   * 추후 JPA, Redis 등으로 확장 가능한 구조입니다.
-* 메서드 네이밍은 JPA 스타일(`findById`, `save` 등)을 따르되,
-  **예외 처리는 하지 않고**, 비즈니스 레이어에서 처리되도록 위임합니다.
+* 메서드 네이밍은 JPA 스타일(`findById`, `save` 등)을 따릅니다.
 
 ---
 
-## 2. 토큰 검증 흐름
+## 2. 토큰 검증 및 사용자 검증 흐름
 
 ```plaintext
-HTTP 요청 → Controller
-              └─> ValidateQueueTokenService
-                     └─> 유효성 확인 + userId 추출
-                           └─> Service (userId와 함께 비즈니스 로직 수행)
+HTTP 요청 진입
+   ↓
+OncePerRequestFilter (TokenAndIdFilter)
+   ├─ 요청이 `/reservation` 혹은 `GET /queue/token` 이면
+   │    • X-Queue-Token 헤더에서 토큰 꺼내기
+   │    • ValidateQueueTokenService.parseAndValidate(token) → userId
+   │    • SecurityContext에 userId 설정
+   └─ 그 외 요청이면
+        • X-User-Id 헤더에서 userId 꺼내기
+        • ValidateUserService.validateUser(userId)
+        • SecurityContext에 userId 설정
+   ↓
+DispatcherServlet
+   ↓
+HandlerMethodArgumentResolver (`@CurrentUser`)  
+   • SecurityContext에서 꺼낸 userId를 Long 파라미터로 주입  
+   ↓
+Controller 메서드 (`@CurrentUser userId: Long`)  
+   ↓
+Service 호출 (userId 보장)  
 ```
-
-* 모든 요청은 **토큰 검증 → 사용자 식별(userId) → 유즈케이스 수행**의 흐름을 따릅니다.
 
 ---
 
@@ -63,24 +79,30 @@ HTTP 요청 → Controller
 kr.hhplus.be.server
 ├── controller
 │   └── ReservationController.kt
-├── service
+├── application
+│   ├── schedule
+│   │   └── ExpireStatusScheduler.kt
 │   ├── validation
 │   │   └── ValidateQueueTokenService.kt
-│   ├── ListConcertService.kt
-│   ├── ListSeatService.kt
-│   ├── HoldSeatService.kt
-│   └── ConfirmReservationService.kt
-├── domain
-│   ├── QueueToken.kt
-│   ├── UserBalance.kt
-│   ├── UserBalanceTable.kt // repository 구현체
+│   │   └── ValidateUserService.kt
+│   ├── ListConcertUseCase.kt
+│   ├── ListSeatUseCase.kt
+│   ├── HoldSeatUseCase.kt
+│   └── ConfirmReservationUseCase.kt
 │   └── ...
-├── repository
+├── domain
+│   └── model
+│   │   └── QueueToken.kt
+│   │   └── UserBalance.kt
+│   └── repository
+│   │   └── UserBalanceTable.kt // repository 구현체
+│   │   └── ...
+├── infrastructure
 │   ├── QueueTokenRepository.kt
 │   ├── SeatRepository.kt
 │   └── ...
 ├── support
-│   └── (예외 처리, 시간 헬퍼 등)
+│   └── (Api Response 객체, 예외 처리 등)
 ```
 
 ---
@@ -103,8 +125,7 @@ kr.hhplus.be.server
 ### ✅ 점진적 확장 고려
 
 * Repository는 인터페이스 기반으로 정의되어 있어, InMemory → JPA → Redis 등으로 확장 용이
-* Repository에서는 예외를 발생시키지 않고, 비즈니스 로직을 담당하는 서비스에서 명시적으로 처리
-* Repository 메서드는 JPA 스타일의 네이밍을 따르고 예외 처리는 하지 않음
+* Repository 메서드는 JPA 스타일의 네이밍을 따름
 
 ### ✅ 실용 중심, 과도한 추상화 지양
 
@@ -124,10 +145,10 @@ kr.hhplus.be.server
 
 ## 6. 기술 스택
 
-* Kotlin / Java
+* Kotlin
 * Spring Boot
 * Gradle (Kotlin DSL)
-* Kotest
+* Kotest, Mockk (테스트)
 * (추후) JPA / Redis / Kafka 등으로 확장 고려
 
 ---

@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.controller
 
 import kr.hhplus.be.server.controller.swagger.SwaggerQueueTokenController
-import kr.hhplus.be.server.service.RequestQueueTokenService
-import kr.hhplus.be.server.service.GetQueueTokenService
+import kr.hhplus.be.server.application.RequestQueueTokenUseCase
+import kr.hhplus.be.server.application.GetQueueTokenUseCase
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,19 +15,19 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/queue/token")
 class QueueTokenController(
-	private val RequestQueueTokenService: RequestQueueTokenService,
-	private val getQueueTokenService: GetQueueTokenService
+	private val requestQueueTokenUseCase: RequestQueueTokenUseCase,
+	private val getQueueTokenUseCase: GetQueueTokenUseCase
 ) : SwaggerQueueTokenController {
 
 	@PostMapping("/")
 	override fun createToken(
 		@RequestHeader(name = "Client-Id", required = true) userId: Long
-	): ResponseEntity<ApiResponse<RequestQueueTokenService.Output>> {
+	): ResponseEntity<ApiResponse<RequestQueueTokenUseCase.Output>> {
 		return ResponseEntity.status(HttpStatus.CREATED).body(
 			ApiResponse(
 				code = "SUCCESS",
 				message = "토큰 생성 성공",
-				data = RequestQueueTokenService.createToken(userId = userId)
+				data = requestQueueTokenUseCase.createToken(userId = userId)
 			)
 		)
 	}
@@ -35,12 +35,12 @@ class QueueTokenController(
 	@GetMapping("/")
 	override fun getTokenStatus(
 		@RequestHeader(name = "Queue-Token", required = true) token: String
-	): ResponseEntity<ApiResponse<GetQueueTokenService.Output>> {
+	): ResponseEntity<ApiResponse<GetQueueTokenUseCase.Output>> {
 		return ResponseEntity.ok(
 			ApiResponse(
 				code = "SUCCESS",
 				message = "토큰 상태 조회 성공",
-				data = getQueueTokenService.getToken(token)
+				data = getQueueTokenUseCase.getToken(token)
 			)
 		)
 	}

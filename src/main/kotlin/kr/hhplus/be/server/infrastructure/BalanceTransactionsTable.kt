@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.BalanceTransaction
-import kr.hhplus.be.server.domain.BalanceTransactionRepository
+import kr.hhplus.be.server.domain.model.BalanceTransaction
+import kr.hhplus.be.server.domain.repository.BalanceTransactionRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 

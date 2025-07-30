@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.Reservation
-import kr.hhplus.be.server.domain.ReservationRepository
+import kr.hhplus.be.server.domain.model.Reservation
+import kr.hhplus.be.server.domain.repository.ReservationRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 

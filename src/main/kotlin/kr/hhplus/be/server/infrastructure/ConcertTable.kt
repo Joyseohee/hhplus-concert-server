@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.Concert
-import kr.hhplus.be.server.domain.ConcertRepository
+import kr.hhplus.be.server.domain.model.Concert
+import kr.hhplus.be.server.domain.repository.ConcertRepository
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap

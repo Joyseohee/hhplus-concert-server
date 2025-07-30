@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.Seat
-import kr.hhplus.be.server.domain.SeatRepository
+import kr.hhplus.be.server.domain.model.Seat
+import kr.hhplus.be.server.domain.repository.SeatRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 

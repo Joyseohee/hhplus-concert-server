@@ -5,11 +5,11 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.mockk.every
 import io.mockk.mockk
-import kr.hhplus.be.server.service.ConfirmReservationService
-import kr.hhplus.be.server.service.HoldSeatService
-import kr.hhplus.be.server.service.ListConcertService
-import kr.hhplus.be.server.service.ListSeatService
-import kr.hhplus.be.server.service.validation.ValidateQueueTokenService
+import kr.hhplus.be.server.application.ConfirmReservationUseCase
+import kr.hhplus.be.server.application.HoldSeatUseCase
+import kr.hhplus.be.server.application.ListConcertUseCase
+import kr.hhplus.be.server.application.ListSeatUseCase
+import kr.hhplus.be.server.application.validation.ValidateQueueTokenService
 import kr.hhplus.be.server.support.error.GlobalExceptionHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -24,10 +24,10 @@ import java.time.Instant
 
 @TestConfiguration
 class ReserveMockConfig {
-	@Bean fun holdSeatService() = mockk<HoldSeatService>(relaxed = true)
-	@Bean fun confirmReservationService() = mockk<ConfirmReservationService>(relaxed = true)
-	@Bean fun concertService() = mockk<ListConcertService>(relaxed = true)
-	@Bean fun seatService() = mockk<ListSeatService>(relaxed = true)
+	@Bean fun holdSeatUseCase() = mockk<HoldSeatUseCase>(relaxed = true)
+	@Bean fun confirmReservationUseCase() = mockk<ConfirmReservationUseCase>(relaxed = true)
+	@Bean fun concertUseCase() = mockk<ListConcertUseCase>(relaxed = true)
+	@Bean fun seatUseCase() = mockk<ListSeatUseCase>(relaxed = true)
 	@Bean fun validateQueueTokenService() = mockk<ValidateQueueTokenService>(relaxed = true)
 }
 
@@ -36,19 +36,19 @@ class ReserveMockConfig {
 class ReservationControllerTest @Autowired constructor(
 	private val mockMvc: MockMvc,
 	private val objectMapper: ObjectMapper,
-	private val holdSeatService: HoldSeatService,
-	private val confirmReservationService: ConfirmReservationService,
-	private val concertService: ListConcertService,
-	private val seatService: ListSeatService,
+	private val holdSeatUseCase: HoldSeatUseCase,
+	private val confirmReservationUseCase: ConfirmReservationUseCase,
+	private val concertUseCase: ListConcertUseCase,
+	private val seatUseCase: ListSeatUseCase,
 	private val validateQueueTokenService: ValidateQueueTokenService
 ) : BehaviorSpec({
 	extension(SpringExtension)
 
 	given("좌석 점유 요청이 있을 때") {
-		`when`("유효한 HoldSeatService.Input이 전송되면") {
+		`when`("유효한 HoldSeatUseCase.Input이 전송되면") {
 			then("SUCCESS 응답을 반환한다") {
-				val req = HoldSeatService.Input("uuid", 1L, 1L)
-				every { holdSeatService.holdSeat(userId = 1L, input = req) } returns HoldSeatService.Output(
+				val req = HoldSeatUseCase.Input("uuid", 1L, 1L)
+				every { holdSeatUseCase.holdSeat(userId = 1L, input = req) } returns HoldSeatUseCase.Output(
 					"uuid",
 					1,
 					Instant.parse("2025-07-20T19:12:34Z")
@@ -64,7 +64,7 @@ class ReservationControllerTest @Autowired constructor(
 				}
 			}
 		}
-		`when`("유효하지 않은 HoldSeatService.Input이 전송되면") {
+		`when`("유효하지 않은 HoldSeatUseCase.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
 					header("Queue-Token", "valid-token")
@@ -78,15 +78,15 @@ class ReservationControllerTest @Autowired constructor(
 	}
 
 	given("예약 확정 요청이 있을 때") {
-		`when`("유효한 ConfirmReservationService.Input이 전송되면") {
+		`when`("유효한 ConfirmReservationUseCase.Input이 전송되면") {
 			then("SUCCESS 응답을 반환한다") {
-				val req = ConfirmReservationService.Input("res-uuid", 1L)
+				val req = ConfirmReservationUseCase.Input("res-uuid", 1L)
 				every {
-					confirmReservationService.confirmReservation(
+					confirmReservationUseCase.confirmReservation(
 						userId = 1L,
 						input = req
 					)
-				} returns ConfirmReservationService.Output(1L, 1L, 130000)
+				} returns ConfirmReservationUseCase.Output(1L, 1L, 130000)
 
 				mockMvc.post("/api/v1/reservations/") {
 					header("Queue-Token", "valid-token")
@@ -98,7 +98,7 @@ class ReservationControllerTest @Autowired constructor(
 				}
 			}
 		}
-		`when`("유효하지 않은 ConfirmReservationService.Input이 전송되면") {
+		`when`("유효하지 않은 ConfirmReservationUseCase.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/") {
 					header("Queue-Token", "valid-token")
@@ -114,16 +114,16 @@ class ReservationControllerTest @Autowired constructor(
 	given("콘서트 조회 요청이 있을 때") {
 		`when`("요청이 들어오면") {
 			then("SUCCESS 응답을 반환한다") {
-				every { concertService.listConcerts() } returns ListConcertService.Output(
+				every { concertUseCase.listConcerts() } returns ListConcertUseCase.Output(
 					listOf(
-						ListConcertService.Output.ConcertInfo(
+						ListConcertUseCase.Output.ConcertInfo(
 							concertId = 1L,
 							concertTitle = "Test Concert",
 							concertVenue = "Test Venue",
 							concertDateTime = "2025-07-20T19:12:34Z",
 							isAvailable = true,
 						),
-						ListConcertService.Output.ConcertInfo(
+						ListConcertUseCase.Output.ConcertInfo(
 							concertId = 2L,
 							concertTitle = "Another Concert",
 							concertVenue = "Another Venue",
@@ -147,12 +147,12 @@ class ReservationControllerTest @Autowired constructor(
 	given("getSeats API endpoint") {
 		`when`("request for concertId 1 is made") {
 			then("responds with SUCCESS") {
-				every { seatService.listAvailableSeats(concertId = 1L, userId = 1L) } returns ListSeatService.Output(
+				every { seatUseCase.listAvailableSeats(concertId = 1L, userId = 1L) } returns ListSeatUseCase.Output(
 					concertId = 1L,
 					availableSeats = listOf(
-						ListSeatService.Output.SeatInfo(seatId = 1L, seatNumber = 1, price = 100000, isAvailable = true),
-						ListSeatService.Output.SeatInfo(seatId = 2L, seatNumber = 2, price = 120000, isAvailable = true),
-						ListSeatService.Output.SeatInfo(seatId = 3L, seatNumber = 3, price = 150000, isAvailable = false)
+						ListSeatUseCase.Output.SeatInfo(seatId = 1L, seatNumber = 1, price = 100000, isAvailable = true),
+						ListSeatUseCase.Output.SeatInfo(seatId = 2L, seatNumber = 2, price = 120000, isAvailable = true),
+						ListSeatUseCase.Output.SeatInfo(seatId = 3L, seatNumber = 3, price = 150000, isAvailable = false)
 					)
 				)
 

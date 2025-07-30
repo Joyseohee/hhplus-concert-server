@@ -1,0 +1,144 @@
+package kr.hhplus.be.server.application
+
+import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import kr.hhplus.be.server.domain.model.SeatHold.Companion.VALID_HOLD_MINUTE
+import kr.hhplus.be.server.domain.model.QueueToken
+import kr.hhplus.be.server.domain.model.Reservation
+import kr.hhplus.be.server.domain.model.Seat
+import kr.hhplus.be.server.domain.model.SeatHold
+import kr.hhplus.be.server.domain.model.UserBalance
+import kr.hhplus.be.server.domain.repository.QueueTokenRepository
+import kr.hhplus.be.server.domain.repository.ReservationRepository
+import kr.hhplus.be.server.domain.repository.SeatHoldRepository
+import kr.hhplus.be.server.domain.repository.SeatRepository
+import kr.hhplus.be.server.domain.repository.UserBalanceRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import java.time.Instant
+import java.util.*
+
+@SpringBootTest
+class ConfirmReservationUseCaseTest @Autowired constructor(
+	private val confirmReservationUseCase: ConfirmReservationUseCase,
+	private val seatRepository: SeatRepository,
+	private val seatHoldRepository: SeatHoldRepository,
+	private val reservationRepository: ReservationRepository,
+	private val userBalanceRepository: UserBalanceRepository,
+	private val queueTokenRepository: QueueTokenRepository
+) : BehaviorSpec({
+	val userId = 1L
+	val concertId = 1L
+	val seatId = 1L
+	val seatNumber = 1
+	val price = 10_000L
+	val seatHoldUuid = UUID.randomUUID().toString()
+	val reservationUuid = UUID.randomUUID().toString()
+
+	beforeTest {
+		userBalanceRepository.clear()
+		seatRepository.clear()
+		seatHoldRepository.clear()
+		reservationRepository.clear()
+		queueTokenRepository.clear()
+	}
+
+	given("점유한 좌석에 대해 예약을 요청할 때") {
+		`when`("유효한 사용자가 점유해둔 좌석을 예약한다면") {
+			then("예약에 성공하고 예약 정보가 반환되어야 한다") {
+				userBalanceRepository.save(UserBalance.create(userId = userId, balance = price + 1_000L))
+				seatRepository.save(Seat.create(seatId = seatId, seatNumber = seatNumber, price = price))
+				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId))
+				queueTokenRepository.save(QueueToken.create(userId = userId))
+
+				val result = confirmReservationUseCase.confirmReservation(
+					userId, ConfirmReservationUseCase.Input(
+						reservationUuid = UUID.randomUUID().toString(),
+						seatId = seatId
+					)
+				)
+
+				result shouldBe ConfirmReservationUseCase.Output(
+					concertId = concertId,
+					seatId = seatId,
+					price = price
+				)
+			}
+		}
+		`when`("점유한 적 없는 좌석에 대해 예약을 시도할 때") {
+			then("예외가 발생해야 한다") {
+				userBalanceRepository.save(UserBalance.create(userId = userId, balance = price + 1_000L))
+				seatRepository.save(Seat.create(seatId = seatId, seatNumber = seatNumber, price = price))
+				queueTokenRepository.save(QueueToken.create(userId = userId))
+
+				shouldThrowExactly<IllegalArgumentException> {
+					confirmReservationUseCase.confirmReservation(
+						userId, ConfirmReservationUseCase.Input(
+							reservationUuid = reservationUuid,
+							seatId = seatId
+						)
+					)
+				}
+			}
+		}
+		`when`("점유가 만료된 좌석에 대해 예약을 시도할 때") {
+			then("예외가 발생해야 한다") {
+				val expiresAt = Instant.now().minusSeconds(VALID_HOLD_MINUTE * 60)
+
+				userBalanceRepository.save(UserBalance.create(userId = userId, balance = price + 1_000L))
+				seatRepository.save(Seat.create(seatId = seatId, seatNumber = seatNumber, price = price))
+				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId, expiresAt = expiresAt))
+				queueTokenRepository.save(QueueToken.create(userId = userId))
+
+				shouldThrowExactly<IllegalArgumentException> {
+					confirmReservationUseCase.confirmReservation(
+						userId, ConfirmReservationUseCase.Input(
+							reservationUuid = reservationUuid,
+							seatId = seatId
+						)
+					)
+				}
+			}
+		}
+		`when`("좌석 가격에 비해 잔고가 부족할 때") {
+			then("예외가 발생해야 한다") {
+				userBalanceRepository.save(UserBalance.create(userId = userId, balance = price - 1_000L))
+				seatRepository.save(Seat.create(seatId = seatId, seatNumber = 1, price = price))
+				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId))
+				queueTokenRepository.save(QueueToken.create(userId = userId))
+
+				shouldThrowExactly<IllegalArgumentException> {
+					confirmReservationUseCase.confirmReservation(
+						userId,
+						ConfirmReservationUseCase.Input(
+							reservationUuid = reservationUuid,
+							seatId = seatId
+						)
+					)
+				}
+			}
+		}
+		`when`("다른 사용자가 점유한 좌석을 예약하려고 할 때") {
+			then("예외가 발생해야 한다") {
+				val illegalUserId = 2L
+				userBalanceRepository.save(UserBalance.create(userId = userId, balance = price + 1_000L))
+				userBalanceRepository.save(UserBalance.create(userId = illegalUserId, balance = price + 1_000L))
+				seatRepository.save(Seat.create(seatId = seatId, seatNumber = seatNumber, price = price))
+				seatHoldRepository.save(SeatHold.create(seatHoldUuid = seatHoldUuid, userId = userId, concertId = concertId, seatId = seatId))
+				reservationRepository.save(Reservation.create(reservationUuid = reservationUuid, userId = userId, concertId = concertId, seatId = seatId, reservedAt = Instant.now(), price = price))
+				queueTokenRepository.save(QueueToken.create(userId = illegalUserId))
+
+				shouldThrowExactly<IllegalArgumentException> {
+					confirmReservationUseCase.confirmReservation(
+						illegalUserId,
+						ConfirmReservationUseCase.Input(
+							reservationUuid = seatHoldUuid,
+							seatId = seatId
+						)
+					)
+				}
+			}
+		}
+	}
+})

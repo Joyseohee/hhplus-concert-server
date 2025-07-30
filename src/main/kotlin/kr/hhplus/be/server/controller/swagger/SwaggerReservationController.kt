@@ -6,10 +6,10 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.service.ConfirmReservationService
-import kr.hhplus.be.server.service.HoldSeatService
-import kr.hhplus.be.server.service.ListConcertService
-import kr.hhplus.be.server.service.ListSeatService
+import kr.hhplus.be.server.application.ConfirmReservationUseCase
+import kr.hhplus.be.server.application.HoldSeatUseCase
+import kr.hhplus.be.server.application.ListConcertUseCase
+import kr.hhplus.be.server.application.ListSeatUseCase
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -60,7 +60,7 @@ interface SwaggerReservationController {
 	)
 	fun getConcerts(
 		token: String
-	): ResponseEntity<ApiResponse<ListConcertService.Output>>
+	): ResponseEntity<ApiResponse<ListConcertUseCase.Output>>
 
 	@Operation(summary = "특정 콘서트의 좌석 목록 조회", tags = ["Reservations"])
 	@SwaggerApiResponse(responseCode = "200", description = "조회 성공",
@@ -97,7 +97,7 @@ interface SwaggerReservationController {
 	fun getSeats(
 		token: String,
 		concertId: Long
-	): ResponseEntity<ApiResponse<ListSeatService.Output>>
+	): ResponseEntity<ApiResponse<ListSeatUseCase.Output>>
 
 	@Operation(summary = "좌석 점유 요청", tags = ["Reservations"])
 	@SwaggerApiResponse(
@@ -133,8 +133,8 @@ interface SwaggerReservationController {
 	)
 	fun holdSeats(
 		token: String,
-		seatsHoldRequest: HoldSeatService.Input
-	): ResponseEntity<ApiResponse<HoldSeatService.Output>>
+		seatsHoldRequest: HoldSeatUseCase.Input
+	): ResponseEntity<ApiResponse<HoldSeatUseCase.Output>>
 
 
 	@Operation(summary = "결제 및 예약 확정", tags = ["Reservations"])
@@ -169,6 +169,6 @@ interface SwaggerReservationController {
 	)
 	fun confirmedReservation(
 		token: String,
-		reservationRequest: ConfirmReservationService.Input
-	): ResponseEntity<ApiResponse<ConfirmReservationService.Output>>
+		reservationRequest: ConfirmReservationUseCase.Input
+	): ResponseEntity<ApiResponse<ConfirmReservationUseCase.Output>>
 }

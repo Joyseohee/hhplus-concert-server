@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure
 
-import kr.hhplus.be.server.domain.QueueToken
-import kr.hhplus.be.server.domain.QueueTokenRepository
+import kr.hhplus.be.server.domain.model.QueueToken
+import kr.hhplus.be.server.domain.repository.QueueTokenRepository
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap

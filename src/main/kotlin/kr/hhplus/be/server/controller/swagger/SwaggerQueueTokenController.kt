@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.service.RequestQueueTokenService
-import kr.hhplus.be.server.service.GetQueueTokenService
+import kr.hhplus.be.server.application.RequestQueueTokenUseCase
+import kr.hhplus.be.server.application.GetQueueTokenUseCase
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -45,7 +45,7 @@ interface SwaggerQueueTokenController {
 	)
 	fun createToken(
 		userId: Long
-	): ResponseEntity<ApiResponse<RequestQueueTokenService.Output>>
+	): ResponseEntity<ApiResponse<RequestQueueTokenUseCase.Output>>
 
 	@Operation(summary = "대기 번호 및 토큰 상태 조회", tags = ["Queue"])
 	@SwaggerApiResponse(responseCode = "200", description = "토큰 ACTIVE 혹은 WAITING 상태",
@@ -79,5 +79,5 @@ interface SwaggerQueueTokenController {
 	)
 	fun getTokenStatus(
 		token: String
-	): ResponseEntity<ApiResponse<GetQueueTokenService.Output>>
+	): ResponseEntity<ApiResponse<GetQueueTokenUseCase.Output>>
 }
