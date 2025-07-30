@@ -35,7 +35,7 @@ interface SwaggerQueueTokenController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "Client-Id",
 		`in`        = ParameterIn.HEADER,
 		description = "클라이언트 식별자",
 		required    = true,
@@ -67,7 +67,7 @@ interface SwaggerQueueTokenController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Queue-Token",
+		name        = "Queue-Token",
 		`in`        = ParameterIn.HEADER,
 		description = "대기열 토큰",
 		required    = true,

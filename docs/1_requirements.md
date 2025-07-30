@@ -68,7 +68,7 @@
 
 4. **인증**
 
-    * `X-Client-Id`와 `X-Queue-Token` 헤더로 사용자·토큰 검증.
+    * `Client-Id`와 `Queue-Token` 헤더로 사용자·토큰 검증.
     * 토큰 UUID 충분한 랜덤성 보장.
 
 5. **신속성 & 가독성**

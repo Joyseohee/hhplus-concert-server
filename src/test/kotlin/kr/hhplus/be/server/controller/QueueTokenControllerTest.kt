@@ -58,7 +58,7 @@ class QueueTokenControllerTest @Autowired constructor(
         `when`("헤더에 유저 정보를 넣어 요청하면") {
             then("201, 토큰 정보 반환") {
                 val result = mockMvc.post("/api/v1/queue/token/") {
-                    header("X-Client-Id", validUserId)
+                    header("Client-Id", validUserId)
                     contentType = MediaType.APPLICATION_JSON
                 }.andReturn().response
                 result.status shouldBe 201
@@ -83,7 +83,7 @@ class QueueTokenControllerTest @Autowired constructor(
         beforeTest {
             // 토큰 발급
             val result = mockMvc.post("/api/v1/queue/token/") {
-                header("X-Client-Id", validUserId)
+                header("Client-Id", validUserId)
                 contentType = MediaType.APPLICATION_JSON
             }.andReturn().response
             val json = objectMapper.readTree(result.contentAsString)
@@ -92,7 +92,7 @@ class QueueTokenControllerTest @Autowired constructor(
         `when`("유효한 토큰으로 요청하면") {
             then("200, 토큰 상태 정보 반환") {
                 val result = mockMvc.get("/api/v1/queue/token/") {
-                    header("X-Queue-Token", token)
+                    header("Queue-Token", token)
                 }.andReturn().response
                 result.status shouldBe 200
                 val json = objectMapper.readTree(result.contentAsString)

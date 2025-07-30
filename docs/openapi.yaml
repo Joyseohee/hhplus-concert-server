@@ -7,67 +7,40 @@ info:
     email: sh940311@gmail.com
   version: 1.0.0
 servers:
-- url: http://localhost:8080
-  description: Local 개발 서버
+  - url: http://localhost:8080
+    description: Local 개발 서버
 tags:
-- name: Queue
-  description: 대기열 토큰 조회/발급
-- name: Seats
-  description: 좌석 조회/점유
-- name: Balance
-  description: 잔액 조회/충전
-- name: Reservations
-  description: 결제 및 예약
+  - name: Queue
+    description: 대기열 토큰 조회/발급
+  - name: Seats
+    description: 좌석 조회/점유
+  - name: Balance
+    description: 잔액 조회/충전
+  - name: Reservations
+    description: 결제 및 예약
 paths:
-  /schedules/{concertId}/seats/hold:
+  /api/v1/reservations/concerts/{concertId}/seats/hold:
     post:
       tags:
-      - Seat
+        - Reservations
       summary: 좌석 점유 요청
       operationId: holdSeats
       parameters:
-      - name: X-Queue-Token
-        in: header
-        description: 대기열 토큰
-        required: true
-        schema:
-          type: string
-          format: encoded
-          example: abcac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Queue-Token
+          in: header
+          description: 대기열 토큰
+          required: true
+          schema:
+            type: string
+            format: encoded
+            example: abcac10b-58cc-4372-a567-0e02b2c3d479
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SeatsHoldRequest"
+              $ref: "#/components/schemas/HoldSeatRequest"
         required: true
       responses:
-        "404":
-          description: 유효하지 않은 토큰
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_TOKEN
-                message: 유효하지 않은 토큰입니다.
-        "410":
-          description: 토큰 만료
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: EXPIRED
-                message: 토큰이 만료되었습니다.
-        "400":
-          description: 유효하지 않은 좌석
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_SEAT
-                message: 유효하지 않은 좌석입니다.
         "200":
           description: 점유 성공
           content:
@@ -79,38 +52,30 @@ paths:
                 message: 좌석 점유 성공
                 data:
                   seatId: 1
-                  remainingTimeMills: 300000
-  /reservations:
+                  seatNumber: 1
+                  expiresAt: 2025-07-20T19:12:34Z
+  /api/v1/reservations/:
     post:
       tags:
-      - Reservations
+        - Reservations
       summary: 결제 및 예약 확정
       operationId: confirmedReservation
       parameters:
-      - name: X-Queue-Token
-        in: header
-        description: 대기열 토큰
-        required: true
-        schema:
-          type: string
-          format: encoded
-          example: abcac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Queue-Token
+          in: header
+          description: 대기열 토큰
+          required: true
+          schema:
+            type: string
+            format: encoded
+            example: abcac10b-58cc-4372-a567-0e02b2c3d479
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReservationRequest"
+              $ref: "#/components/schemas/ConfirmReservationRequest"
         required: true
       responses:
-        "404":
-          description: 유효하지 않은 토큰
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_TOKEN
-                message: 유효하지 않은 토큰입니다.
         "200":
           description: 결제 성공
           content:
@@ -124,50 +89,22 @@ paths:
                   concertId: 1
                   seatId: 1
                   price: 130000
-        "400":
-          description: 잔액 부족 or 잘못된 요청
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: NO_BALANCE
-                message: 잔액이 부족합니다.
-        "410":
-          description: 토큰 또는 좌석 점유 만료
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: EXPIRED_TOKEN
-                message: 토큰이 만료되었습니다.
-  /queue/token:
+  /api/v1/queue/token/:
     get:
       tags:
-      - Queue
+        - Queue
       summary: 대기 번호 및 토큰 상태 조회
       operationId: getTokenStatus
       parameters:
-      - name: X-Queue-Token
-        in: header
-        description: 대기열 토큰
-        required: true
-        schema:
-          type: string
-          format: encoded
-          example: abcac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Queue-Token
+          in: header
+          description: 대기열 토큰
+          required: true
+          schema:
+            type: string
+            format: encoded
+            example: abcac10b-58cc-4372-a567-0e02b2c3d479
       responses:
-        "404":
-          description: 유효하지 않은 토큰
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_TOKEN
-                message: 유효하지 않은 토큰입니다.
-                data: null
         "200":
           description: 토큰 ACTIVE 혹은 WAITING 상태
           content:
@@ -180,31 +117,19 @@ paths:
                 data:
                   status: ACTIVE
                   position: 0
-                  remainingTimeMills: 300000
-        "410":
-          description: 토큰 만료
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: EXPIRED
-                message: 토큰이 만료되었습니다.
-                data: null
+                  expiresAt: 2025-07-20T19:12:34Z
     post:
       tags:
-      - Queue
+        - Queue
       summary: 대기열 토큰 발급
       operationId: createToken
       parameters:
-      - name: X-Client-Id
-        in: header
-        description: 클라이언트 식별자(UUID)
-        required: true
-        schema:
-          type: string
-          format: uuid
-          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Client-Id
+          in: header
+          description: 클라이언트 식별자
+          required: true
+          schema:
+            type: number
       responses:
         "201":
           description: 토큰 발급 성공
@@ -217,47 +142,29 @@ paths:
                 message: 토큰이 성공적으로 발급되었습니다.
                 data:
                   token: abcac10b-58cc-4372-a567-0e02b2c3d479
-        "404":
-          description: 유효하지 않은 사용자
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_USER
-                message: 유효하지 않은 사용자입니다.
-                data: null
-  /balance/charge:
+                  status: ACTIVE
+                  position: 0
+                  expiresAt: 2025-07-20T19:12:34Z
+  /api/v1/balance/charge:
     post:
       tags:
-      - Balance
+        - Balance
       summary: 잔액 충전
       operationId: chargeBalance
       parameters:
-      - name: X-Client-Id
-        in: header
-        description: 클라이언트 식별자(UUID)
-        required: true
-        schema:
-          type: string
-          format: uuid
-          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Client-Id
+          in: header
+          description: 클라이언트 식별자
+          required: true
+          schema:
+            type: number
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BalanceRequest"
+              $ref: "#/components/schemas/ChargeBalanceRequest"
         required: true
       responses:
-        "400":
-          description: 충전 실패
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: BAD_REQUEST
-                message: 충전 실패
         "200":
           description: 충전 성공
           content:
@@ -266,49 +173,67 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
               example:
                 code: SUCCESS
-                message: 잔액 충전 성공
+                message: 충전 성공
                 data:
-                  balance: 80000
-  /schedules/{concertId}/available-seats:
+                  balance: 100000
+  /api/v1/reservations/concerts:
     get:
       tags:
-      - Seat
-      summary: 특정 콘서트의 좌석 목록 조회
-      operationId: getAvailableSeats
+        - Reservations
+      summary: 예약 가능한 콘서트 목록 조회
+      operationId: getConcerts
       parameters:
-      - name: X-Queue-Token
-        in: header
-        description: 대기열 토큰
-        required: true
-        schema:
-          type: string
-          format: encoded
-          example: abcac10b-58cc-4372-a567-0e02b2c3d479
-      - name: concertId
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int64
+        - name: Queue-Token
+          in: header
+          description: 대기열 토큰
+          required: true
+          schema:
+            type: string
+            format: encoded
+            example: abcac10b-58cc-4372-a567-0e02b2c3d479
       responses:
-        "410":
-          description: 토큰 만료
+        "200":
+          description: 조회 성공
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
               example:
-                code: EXPIRED
-                message: 토큰이 만료되었습니다.
-        "404":
-          description: 유효하지 않은 토큰 or 콘서트 ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_TOKEN
-                message: 유효하지 않은 토큰입니다.
+                code: SUCCESS
+                message: 요청이 성공했습니다.
+                data:
+                  - concertId: 1
+                    concertDateTime: 2023-10-01T19:00:00
+                    concertVenue: 서울 올림픽공원 체조경기장
+                    concertTitle: 2023 HH+ Concert
+                    isAvailable: true
+                  - concertId: 2
+                    concertDateTime: 2023-10-02T19:00:00
+                    concertVenue: 서울 올림픽공원 주경기장
+                    concertTitle: 2023 Jazz Concert
+                    isAvailable: false
+  /api/v1/reservations/concerts/{concertId}/seats:
+    get:
+      tags:
+        - Reservations
+      summary: 특정 콘서트의 좌석 목록 조회
+      operationId: getSeats
+      parameters:
+        - name: Queue-Token
+          in: header
+          description: 대기열 토큰
+          required: true
+          schema:
+            type: string
+            format: encoded
+            example: abcac10b-58cc-4372-a567-0e02b2c3d479
+        - name: concertId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
         "200":
           description: 조회 성공
           content:
@@ -321,93 +246,28 @@ paths:
                 data:
                   concertId: 1
                   availableSeats:
-                  - seatId: 1
-                    price: 130000
-                    isAvailable: true
-                  - seatId: 2
-                    price: 150000
-                    isAvailable: false
-  /schedules/available-dates:
+                    - seatId: 1
+                      seatNumber: 1
+                      price: 130000
+                      isAvailable: true
+                    - seatId: 2
+                      seatNumber: 2
+                      price: 150000
+                      isAvailable: false
+  /api/v1/balance/:
     get:
       tags:
-      - Seat
-      summary: 예약 가능한 날짜(콘서트) 목록 조회
-      operationId: getAvailableDates
-      parameters:
-      - name: X-Queue-Token
-        in: header
-        description: 대기열 토큰
-        required: true
-        schema:
-          type: string
-          format: encoded
-          example: abcac10b-58cc-4372-a567-0e02b2c3d479
-      responses:
-        "404":
-          description: 유효하지 않은 토큰
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: INVALID_TOKEN
-                message: 유효하지 않은 토큰입니다.
-                data: null
-        "410":
-          description: 토큰 만료
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: EXPIRED
-                message: 토큰이 만료되었습니다.
-                data: null
-        "200":
-          description: 조회 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: SUCCESS
-                message: 요청이 성공했습니다.
-                data:
-                - concertId: 1
-                  concertDateTime: 2023-10-01T19:00:00
-                  concertVenue: 서울 올림픽공원 체조경기장
-                  concertTitle: 2023 HH+ Concert
-                  isAvailable: true
-                - concertId: 2
-                  concertDateTime: 2023-10-02T19:00:00
-                  concertVenue: 서울 올림픽공원 주경기장
-                  concertTitle: 2023 Jazz Concert
-                  isAvailable: false
-  /balance:
-    get:
-      tags:
-      - Balance
+        - Balance
       summary: 잔액 조회
       operationId: getBalance
       parameters:
-      - name: X-Client-Id
-        in: header
-        description: 클라이언트 식별자(UUID)
-        required: true
-        schema:
-          type: string
-          format: uuid
-          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        - name: Client-Id
+          in: header
+          description: 클라이언트 식별자
+          required: true
+          schema:
+            type: number
       responses:
-        "400":
-          description: 토큰 검증 실패
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                code: BAD_REQUEST
-                message: 토큰 검증 실패
         "200":
           description: 조회 성공
           content:
@@ -421,27 +281,41 @@ paths:
                   balance: 50000
 components:
   schemas:
-    SeatsHoldRequest:
+    HoldSeatRequest:
       type: object
       properties:
-        seatHoldId:
+        seatHoldUuid:
+          type: string
+        concertId:
+          type: integer
+          format: int64
+        seatId:
+          type: integer
+          format: int64
+      description: 좌석 점유 요청
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+      description: API 응답 형식
+    ConfirmReservationRequest:
+      type: object
+      properties:
+        reservationUuid:
           type: string
         seatId:
           type: integer
           format: int64
-      description: 좌석 점유 요청 DTO
-    ApiResponse:
-      type: object
-    ReservationRequest:
-      type: object
-      properties:
-        seatHoldId:
-          type: string
-      description: 결제 및 예약 확정 응답 DTO
-    BalanceRequest:
+      description: 예약 확정 요청
+    ChargeBalanceRequest:
       type: object
       properties:
         amount:
           type: integer
-          format: int32
-      description: 잔액 충전 요청 DTO
+          format: int64
+      description: 잔액 충전 요청

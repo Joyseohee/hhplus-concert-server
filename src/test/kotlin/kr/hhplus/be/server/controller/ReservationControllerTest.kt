@@ -55,7 +55,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -67,7 +67,7 @@ class ReservationControllerTest @Autowired constructor(
 		`when`("유효하지 않은 HoldSeatService.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -89,7 +89,7 @@ class ReservationControllerTest @Autowired constructor(
 				} returns ConfirmReservationService.Output(1L, 1L, 130000)
 
 				mockMvc.post("/api/v1/reservations/") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -101,7 +101,7 @@ class ReservationControllerTest @Autowired constructor(
 		`when`("유효하지 않은 ConfirmReservationService.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -134,7 +134,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }
@@ -157,7 +157,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts/1/seats") {
-					header("X-Queue-Token", "valid-token")
+					header("Queue-Token", "valid-token")
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }

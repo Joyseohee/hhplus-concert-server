@@ -30,7 +30,7 @@ interface SwaggerBalanceController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "Client-Id",
 		`in`        = ParameterIn.HEADER,
 		description = "클라이언트 식별자",
 		required    = true,
@@ -58,7 +58,7 @@ interface SwaggerBalanceController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Client-Id",
+		name        = "Client-Id",
 		`in`        = ParameterIn.HEADER,
 		description = "클라이언트 식별자",
 		required    = true,

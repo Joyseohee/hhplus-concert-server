@@ -42,7 +42,7 @@ class BalanceControllerTest @Autowired constructor(
 				every { chargeBalanceService.chargeBalance(userId = 1L, input = req) } returns ChargeBalanceService.Output(balance = 100000)
 
 				mockMvc.post("/api/v1/balance/charge") {
-					header("X-Client-Id", "1")
+					header("Client-Id", "1")
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -69,7 +69,7 @@ class BalanceControllerTest @Autowired constructor(
 				every { getBalanceService.getBalance(GetBalanceService.Input(userId = 1L)) } returns GetBalanceService.Output(balance = 50000)
 
 				mockMvc.get("/api/v1/balance/") {
-					header("X-Client-Id", "1")
+					header("Client-Id", "1")
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }

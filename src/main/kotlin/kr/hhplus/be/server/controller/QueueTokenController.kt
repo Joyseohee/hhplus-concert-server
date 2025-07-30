@@ -21,7 +21,7 @@ class QueueTokenController(
 
 	@PostMapping("/")
 	override fun createToken(
-		@RequestHeader(name = "X-Client-Id", required = true) userId: Long
+		@RequestHeader(name = "Client-Id", required = true) userId: Long
 	): ResponseEntity<ApiResponse<RequestQueueTokenService.Output>> {
 		return ResponseEntity.status(HttpStatus.CREATED).body(
 			ApiResponse(
@@ -34,7 +34,7 @@ class QueueTokenController(
 
 	@GetMapping("/")
 	override fun getTokenStatus(
-		@RequestHeader(name = "X-Queue-Token", required = true) token: String
+		@RequestHeader(name = "Queue-Token", required = true) token: String
 	): ResponseEntity<ApiResponse<GetQueueTokenService.Output>> {
 		return ResponseEntity.ok(
 			ApiResponse(

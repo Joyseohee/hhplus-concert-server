@@ -13,7 +13,7 @@ Kotlin, Spring Boot, Gradle을 기반으로 개발되었으며, 주요 도메인
 ### Controller (API Layer)
 
 * HTTP 요청을 수신하고 적절한 서비스에 위임합니다.
-* 토큰(`X-Queue-Token` 헤더)을 추출하고, 검증 결과인 `userId`를 서비스로 전달합니다.
+* 토큰(`Queue-Token` 헤더)을 추출하고, 검증 결과인 `userId`를 서비스로 전달합니다.
 * 흐름 제어 책임만 갖고 비즈니스 로직은 포함하지 않습니다.
 
 ### Service (Usecase Layer)

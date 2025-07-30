@@ -21,7 +21,7 @@ class BalanceController(
 ) : SwaggerBalanceController {
 	@GetMapping("/")
 	override fun getBalance(
-		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+		@RequestHeader(value = "Client-Id", required = true) userId: Long,
 	): ResponseEntity<ApiResponse<GetBalanceService.Output>>{
 		val balance = getBalanceService.getBalance(GetBalanceService.Input(userId))
 		// 비즈니스 로직 구현
@@ -36,7 +36,7 @@ class BalanceController(
 
 	@PostMapping("/charge")
 	override fun chargeBalance(
-		@RequestHeader(value = "X-Client-Id", required = true) userId: Long,
+		@RequestHeader(value = "Client-Id", required = true) userId: Long,
 		@RequestBody balanceRequest: ChargeBalanceService.Input
 	): ResponseEntity<ApiResponse<ChargeBalanceService.Output>> {
 		val balance = chargeBalanceService.chargeBalance(userId, balanceRequest)

@@ -48,7 +48,7 @@ interface SwaggerReservationController {
 		)]
 	)
 	@Parameter(
-		name = "X-Queue-Token",
+		name = "Queue-Token",
 		`in` = ParameterIn.HEADER,
 		description = "대기열 토큰",
 		required = true,
@@ -84,7 +84,7 @@ interface SwaggerReservationController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Queue-Token",
+		name        = "Queue-Token",
 		`in`        = ParameterIn.HEADER,
 		description = "대기열 토큰",
 		required    = true,
@@ -121,7 +121,7 @@ interface SwaggerReservationController {
 		)]
 	)
 	@Parameter(
-		name        = "X-Queue-Token",
+		name        = "Queue-Token",
 		`in`        = ParameterIn.HEADER,
 		description = "대기열 토큰",
 		required    = true,
@@ -157,7 +157,7 @@ interface SwaggerReservationController {
 		) ]
 	)
 	@Parameter(
-		name        = "X-Queue-Token",
+		name        = "Queue-Token",
 		`in`        = ParameterIn.HEADER,
 		description = "대기열 토큰",
 		required    = true,
