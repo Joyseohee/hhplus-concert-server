@@ -1,8 +1,9 @@
-package kr.hhplus.be.server.infrastructure
+package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import org.springframework.stereotype.Component
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
@@ -27,7 +28,7 @@ class SeatHoldTable : SeatHoldRepository {
     override fun findValidSeatHoldBySeatId(seatId: Long): SeatHold? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table.values.find {
-                it.seatId == seatId && it.expiresAt.isAfter(java.time.Instant.now())
+                it.seatId == seatId && it.expiresAt.isAfter(Instant.now())
             }
 
     }
@@ -38,7 +39,7 @@ class SeatHoldTable : SeatHoldRepository {
     }
 
     override fun findHoldsToExpire(): List<SeatHold> {
-        return table.values.filter { it.expiresAt.isBefore(java.time.Instant.now()) }.sortedBy { it.expiresAt }
+        return table.values.filter { it.expiresAt.isBefore(Instant.now()) }.sortedBy { it.expiresAt }
     }
 
     override fun save(

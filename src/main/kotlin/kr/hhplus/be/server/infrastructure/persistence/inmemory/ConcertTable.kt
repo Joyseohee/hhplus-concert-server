@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure
+package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.Concert
 import kr.hhplus.be.server.domain.repository.ConcertRepository

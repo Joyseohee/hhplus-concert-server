@@ -1,9 +1,10 @@
-package kr.hhplus.be.server.infrastructure
+package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.Seat
 import kr.hhplus.be.server.domain.repository.SeatRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.get
 
 @Component
 class SeatTable : SeatRepository {
