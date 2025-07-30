@@ -2,47 +2,62 @@ package kr.hhplus.be.server.support.error
 
 import io.swagger.v3.oas.annotations.Hidden
 import kr.hhplus.be.server.support.ApiResponse
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import java.lang.Exception
 
 @Hidden
 @RestControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
-
-	@ExceptionHandler(NoSuchElementException::class)
-	fun handleNotFound(ex: NoSuchElementException): ResponseEntity<ApiResponse<Nothing>> {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+	// 공통 예외 처리
+	@ExceptionHandler(CoreException::class)
+	fun handleCoreException(ex: CoreException): ResponseEntity<ApiResponse<Any?>> {
+		return ResponseEntity.status(ex.error.code).body(
 			ApiResponse(
-				code = "PRODUCT_NOT_FOUND",
-				message = ex.message ?: "리소스를 찾을 수 없습니다.",
+				code = "FAILED",
+				message = ex.error.message,
 				data = null
 			)
 		)
 	}
 
-	@ExceptionHandler(IllegalArgumentException::class)
-	fun handlePolicyException(ex: Exception): ResponseEntity<ApiResponse<Nothing>> {
+	// 예: 잘못된 요청 바디(JSON 파싱 오류)
+	override fun handleHttpMessageNotReadable(
+		ex: HttpMessageNotReadableException,
+		headers: HttpHeaders,
+		status: HttpStatusCode,
+		request: WebRequest
+	): ResponseEntity<Any>? {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 			ApiResponse(
 				code = "BAD_REQUEST",
-				message = ex.message ?: "서버 내부 오류가 발생했습니다.",
+				message = ex.message ?: "잘못된 요청 본문입니다.",
 				data = null
 			)
 		)
 	}
 
-	@ExceptionHandler(Exception::class)
-	fun handleGeneral(ex: Exception): ResponseEntity<ApiResponse<Nothing>> {
+	// 공통 예외 처리 (필요하다면 오버라이드)
+	override fun handleExceptionInternal(
+		ex: Exception,
+		body: Any?,
+		headers: HttpHeaders,
+		statusCode: HttpStatusCode,
+		request: WebRequest
+	): ResponseEntity<Any>? {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
 			ApiResponse(
-				code = "INTERNAL_ERROR",
+				code = "INTERNAL_SERVER_ERROR",
 				message = ex.message ?: "서버 내부 오류가 발생했습니다.",
 				data = null
 			)
 		)
 	}
-
 }
