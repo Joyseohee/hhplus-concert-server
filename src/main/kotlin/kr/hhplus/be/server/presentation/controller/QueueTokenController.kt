@@ -1,8 +1,9 @@
-package kr.hhplus.be.server.controller
+package kr.hhplus.be.server.presentation.controller
 
-import kr.hhplus.be.server.controller.swagger.SwaggerQueueTokenController
+import kr.hhplus.be.server.presentation.controller.swagger.SwaggerQueueTokenController
 import kr.hhplus.be.server.application.RequestQueueTokenUseCase
 import kr.hhplus.be.server.application.GetQueueTokenUseCase
+import kr.hhplus.be.server.presentation.CurrentUser
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,9 +20,9 @@ class QueueTokenController(
 	private val getQueueTokenUseCase: GetQueueTokenUseCase
 ) : SwaggerQueueTokenController {
 
-	@PostMapping("/")
+	@PostMapping
 	override fun createToken(
-		@RequestHeader(name = "Client-Id", required = true) userId: Long
+		@CurrentUser userId: Long
 	): ResponseEntity<ApiResponse<RequestQueueTokenUseCase.Output>> {
 		return ResponseEntity.status(HttpStatus.CREATED).body(
 			ApiResponse(
@@ -32,7 +33,7 @@ class QueueTokenController(
 		)
 	}
 
-	@GetMapping("/")
+	@GetMapping("/status")
 	override fun getTokenStatus(
 		@RequestHeader(name = "Queue-Token", required = true) token: String
 	): ResponseEntity<ApiResponse<GetQueueTokenUseCase.Output>> {

@@ -10,6 +10,11 @@ import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
 import kr.hhplus.be.server.application.ListSeatUseCase
 import kr.hhplus.be.server.application.validation.ValidateQueueTokenService
+import kr.hhplus.be.server.application.validation.ValidateUserService
+import kr.hhplus.be.server.config.WebConfig
+import kr.hhplus.be.server.presentation.CurrentUserResolver
+import kr.hhplus.be.server.presentation.ValidateInterceptor
+import kr.hhplus.be.server.presentation.controller.ReservationController
 import kr.hhplus.be.server.support.error.GlobalExceptionHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -29,10 +34,17 @@ class ReserveMockConfig {
 	@Bean fun concertUseCase() = mockk<ListConcertUseCase>(relaxed = true)
 	@Bean fun seatUseCase() = mockk<ListSeatUseCase>(relaxed = true)
 	@Bean fun validateQueueTokenService() = mockk<ValidateQueueTokenService>(relaxed = true)
+	@Bean fun validateUserService() = mockk<ValidateUserService>(relaxed = true)
 }
 
 @WebMvcTest(ReservationController::class)
-@Import(GlobalExceptionHandler::class, ReserveMockConfig::class)
+@Import(
+	WebConfig::class,
+	CurrentUserResolver::class,
+	ValidateInterceptor::class,
+	GlobalExceptionHandler::class,
+	ReserveMockConfig::class
+)
 class ReservationControllerTest @Autowired constructor(
 	private val mockMvc: MockMvc,
 	private val objectMapper: ObjectMapper,
@@ -40,9 +52,14 @@ class ReservationControllerTest @Autowired constructor(
 	private val confirmReservationUseCase: ConfirmReservationUseCase,
 	private val concertUseCase: ListConcertUseCase,
 	private val seatUseCase: ListSeatUseCase,
-	private val validateQueueTokenService: ValidateQueueTokenService
+	private val validateQueueTokenService: ValidateQueueTokenService,
+	private val validateUserService: ValidateUserService
 ) : BehaviorSpec({
 	extension(SpringExtension)
+
+	val validToken = "valid-token"
+	every { validateQueueTokenService.validateToken(validToken) } returns 1L
+	every { validateUserService.validateUser(1L) } returns Unit
 
 	given("좌석 점유 요청이 있을 때") {
 		`when`("유효한 HoldSeatUseCase.Input이 전송되면") {
@@ -55,7 +72,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("Queue-Token", "valid-token")
+					header("Queue-Token", validToken)
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -67,7 +84,7 @@ class ReservationControllerTest @Autowired constructor(
 		`when`("유효하지 않은 HoldSeatUseCase.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
 				mockMvc.post("/api/v1/reservations/concerts/1/seats/hold") {
-					header("Queue-Token", "valid-token")
+					header("Queue-Token", validToken)
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -88,8 +105,8 @@ class ReservationControllerTest @Autowired constructor(
 					)
 				} returns ConfirmReservationUseCase.Output(1L, 1L, 130000)
 
-				mockMvc.post("/api/v1/reservations/") {
-					header("Queue-Token", "valid-token")
+				mockMvc.post("/api/v1/reservations") {
+					header("Queue-Token", validToken)
 					contentType = MediaType.APPLICATION_JSON
 					content = objectMapper.writeValueAsString(req)
 				}.andExpect {
@@ -100,8 +117,8 @@ class ReservationControllerTest @Autowired constructor(
 		}
 		`when`("유효하지 않은 ConfirmReservationUseCase.Input이 전송되면") {
 			then("BAD_REQUEST 응답을 반환한다") {
-				mockMvc.post("/api/v1/reservations/") {
-					header("Queue-Token", "valid-token")
+				mockMvc.post("/api/v1/reservations") {
+					header("Queue-Token", validToken)
 					contentType = MediaType.APPLICATION_JSON
 					content = "{}"
 				}.andExpect {
@@ -134,7 +151,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts") {
-					header("Queue-Token", "valid-token")
+					header("Queue-Token", validToken)
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }
@@ -145,6 +162,7 @@ class ReservationControllerTest @Autowired constructor(
 	}
 
 	given("getSeats API endpoint") {
+
 		`when`("request for concertId 1 is made") {
 			then("responds with SUCCESS") {
 				every { seatUseCase.listAvailableSeats(concertId = 1L, userId = 1L) } returns ListSeatUseCase.Output(
@@ -157,7 +175,7 @@ class ReservationControllerTest @Autowired constructor(
 				)
 
 				mockMvc.get("/api/v1/reservations/concerts/1/seats") {
-					header("Queue-Token", "valid-token")
+					header("Queue-Token", validToken)
 					accept = MediaType.APPLICATION_JSON
 				}.andExpect {
 					status { isOk() }

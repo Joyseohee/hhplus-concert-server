@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.controller.swagger
+package kr.hhplus.be.server.presentation.controller.swagger
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

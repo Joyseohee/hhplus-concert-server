@@ -52,8 +52,7 @@ class ValidateQueueTokenServiceTest @Autowired constructor(
         `when`("validateToken을 호출하면") {
             then("정상적으로 QueueToken 객체가 반환된다") {
                 val result = validateQueueTokenService.validateToken(validToken)
-                result.token shouldBe validToken
-                result.userId shouldBe validUserId
+                result shouldBe validUserId
             }
         }
     }

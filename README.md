@@ -10,19 +10,19 @@ Kotlin, Spring Boot, Gradle을 기반으로 개발되었으며, 주요 도메인
 
 ## 1. 계층 구조
 
-### Controller (API Layer)
+### Controller (presentation Layer)
 
 * HTTP 요청을 수신하고 적절한 서비스에 위임합니다.
 * 토큰(`Queue-Token` 헤더)을 추출하고, 검증 결과인 `userId`를 서비스로 전달합니다.
 * 흐름 제어 책임만 갖고 비즈니스 로직은 포함하지 않습니다.
 
-### UseCase (Usecase Layer)
+### UseCase (application Layer)
 
 * 각 유즈케이스(콘서트 목록 조회, 좌석 조회, 좌석 점유, 예약 확정 등)에 대응하는 **단일 책임의 서비스 클래스**로 구성됩니다.
 * 각 서비스는 **자신의 책임만 수행**하며, **서비스 간 직접 참조를 하지 않습니다**.
 * 서비스 내부에 `Input`, `Output` 클래스를 정의하여 **DTO와 도메인 간 완충지대 역할을 수행**합니다.
 
-### Service (Cross-cutting Concern)
+### Service (application Layer + Cross-cutting Concern)
 
 * `ValidateQueueTokenService`는 공통 대기열 토큰 인증 로직을 분리한 서비스로,
 
@@ -35,7 +35,7 @@ Kotlin, Spring Boot, Gradle을 기반으로 개발되었으며, 주요 도메인
 * `ValidateUserService`는 공통 사용자 유효성 검증 로직을 분리한 서비스입니다.
   * 필터를 통해 토큰이 없는 모든 요청에 대해 자동으로 적용됩니다.
 
-### Repository (Persistence Abstraction Layer)
+### Repository (Persistence/Infrastructure Layer)
 
 * 각 도메인 객체의 저장/조회 책임을 갖습니다.
 * **인터페이스 + 구현체 구조**로 설계되어 있으며,
@@ -77,8 +77,10 @@ Service 호출 (userId 보장)
 
 ```
 kr.hhplus.be.server
-├── controller
-│   └── ReservationController.kt
+├── presentation  // Controller, Filter/Interceptor, Resolver 등
+│   └── controller
+│   │   └── ReservationController.kt
+│   │   └── ...
 ├── application
 │   ├── schedule
 │   │   └── ExpireStatusScheduler.kt

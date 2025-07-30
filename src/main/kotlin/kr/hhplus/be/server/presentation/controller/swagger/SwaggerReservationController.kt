@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.controller.swagger
+package kr.hhplus.be.server.presentation.controller.swagger
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -59,7 +59,6 @@ interface SwaggerReservationController {
 		)
 	)
 	fun getConcerts(
-		token: String
 	): ResponseEntity<ApiResponse<ListConcertUseCase.Output>>
 
 	@Operation(summary = "특정 콘서트의 좌석 목록 조회", tags = ["Reservations"])
@@ -95,7 +94,7 @@ interface SwaggerReservationController {
 		)
 	)
 	fun getSeats(
-		token: String,
+		userId: Long,
 		concertId: Long
 	): ResponseEntity<ApiResponse<ListSeatUseCase.Output>>
 
@@ -132,7 +131,7 @@ interface SwaggerReservationController {
 		)
 	)
 	fun holdSeats(
-		token: String,
+		userId: Long,
 		seatsHoldRequest: HoldSeatUseCase.Input
 	): ResponseEntity<ApiResponse<HoldSeatUseCase.Output>>
 
@@ -168,7 +167,7 @@ interface SwaggerReservationController {
 		)
 	)
 	fun confirmedReservation(
-		token: String,
+		userId: Long,
 		reservationRequest: ConfirmReservationUseCase.Input
 	): ResponseEntity<ApiResponse<ConfirmReservationUseCase.Output>>
 }
