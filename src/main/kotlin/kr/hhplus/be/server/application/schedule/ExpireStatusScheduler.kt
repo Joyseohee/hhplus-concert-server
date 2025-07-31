@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.application.schedule
 
+import kr.hhplus.be.server.domain.model.QueueToken
+import kr.hhplus.be.server.domain.model.QueueToken.Companion.MAX_ACTIVE_COUNT
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import org.slf4j.LoggerFactory
@@ -20,14 +22,17 @@ class ExpireStatusScheduler(
 		log.info("스케줄러 실행 시점 :: ${Instant.now()}")
 		// QueueToken 만료 처리
 		val tokens = queueTokenRepository.findTokensToExpire()
-		tokens.forEach { token ->
-			val expired = token.expire()
-			queueTokenRepository.save(expired)
-		}
+		queueTokenRepository.deleteByIds(tokens.map { it.tokenId!! })
+
+		// 만료된 수만큼 activate 상태로 변경
+		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
+		val forActivate = queueTokenRepository.findAllWaitingTokenForActivate(MAX_ACTIVE_COUNT - activeCount)
+		forActivate.forEach { it.activate(activeCount + 1) }
+		queueTokenRepository.saveAll(forActivate)
 
 		// SeatHold 만료 처리
 		val holds = seatHoldRepository.findHoldsToExpire()
-		seatHoldRepository.deleteByIds(holds)
+		seatHoldRepository.deleteByIds(holds.map { it.seatHoldId!! })
 		log.info("스케줄러 종료 :: ${Instant.now()}")
 	}
 }
