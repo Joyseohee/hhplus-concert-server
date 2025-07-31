@@ -3,23 +3,22 @@ package kr.hhplus.be.server.domain.repository
 import kr.hhplus.be.server.domain.model.SeatHold
 
 interface SeatHoldRepository {
-	fun findAll(): List<SeatHold>
-
-	fun findById(seatHoldId: Long): SeatHold?
 
 	fun findByUuid(seatHoldUuid: String): SeatHold?
 
-	fun findValidSeatHoldBySeatId(seatId: Long): SeatHold?
+	fun findValidSeatHoldBySeatId(userId: Long, seatId: Long): SeatHold?
 
-	fun findAllByConcertId(id: Long): List<SeatHold>
+	fun findAllConcertIdAndSeatIdAndNotExpired(concertId: Long, seatId: List<Long>): List<SeatHold>
 
 	fun findHoldsToExpire(): List<SeatHold>
 
 	fun save(seatHold: SeatHold): SeatHold
 
+	fun saveAll(seatHolds: List<SeatHold>): List<SeatHold>
+
 	fun deleteById(seatHold: SeatHold)
 
-	fun deleteByIds(seatHolds: List<SeatHold>)
+	fun deleteByIds(seatHoldIds: List<Long>)
 
 	fun clear()
 }

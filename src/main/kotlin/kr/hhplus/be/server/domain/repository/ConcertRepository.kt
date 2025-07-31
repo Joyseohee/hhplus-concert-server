@@ -4,7 +4,12 @@ import kr.hhplus.be.server.domain.model.Concert
 
 interface ConcertRepository {
 	fun findById(id: Long): Concert?
-	fun findAll(): List<Concert> = emptyList()
+
+	fun findAllOrderByShowDateTime(): List<Concert> = emptyList()
+
 	fun save(concert: Concert): Concert
+
+	fun saveAll(concerts: List<Concert>): List<Concert> = emptyList()
+
 	fun clear()
 }

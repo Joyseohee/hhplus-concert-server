@@ -3,23 +3,26 @@ package kr.hhplus.be.server.domain.repository
 import kr.hhplus.be.server.domain.model.QueueToken
 
 interface QueueTokenRepository {
-	fun findAll(): List<QueueToken>
 
-	fun findById(id: Long): QueueToken?
+	fun findByUserId(userId: Long): QueueToken?
 
 	fun findValidatedByToken(token: String): QueueToken?
 
-	fun findWaitingTokensOrderByCreatedAt(): List<QueueToken>
+	fun findAllWaitingTokenForActivate(i: Int): List<QueueToken>
 
-	fun findPositionByToken(token: String): Int?
-
-	fun findTokenWithPosition(token: String): Pair<QueueToken, Int>?
+	fun findPositionById(id: Long): Int?
 
 	fun findTokensToExpire(): List<QueueToken>
 
 	fun countByStatus(active: QueueToken.Status): Int
 
 	fun save(queueToken: QueueToken): QueueToken
+
+	fun saveAll(queueTokens: List<QueueToken>): List<QueueToken>
+
+	fun deleteById(id: Long)
+
+	fun deleteByIds(ids: List<Long>)
 
 	fun clear()
 
