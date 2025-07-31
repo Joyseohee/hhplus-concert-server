@@ -15,9 +15,10 @@ class TestcontainersConfiguration {
 	companion object {
 		val mySqlContainer: MySQLContainer<*> =
 			MySQLContainer(DockerImageName.parse("mysql:8.0"))
+				.withExposedPorts(3306)
 				.withDatabaseName("hhplus")
-				.withUsername("test")
-				.withPassword("test")
+				.withUsername("application")
+				.withPassword("application")
 				.apply {
 					start()
 				}
@@ -29,6 +30,10 @@ class TestcontainersConfiguration {
 			)
 			System.setProperty("spring.datasource.username", mySqlContainer.username)
 			System.setProperty("spring.datasource.password", mySqlContainer.password)
+
+			println("JDBC URL: ${mySqlContainer.jdbcUrl}")
+			println("Username: ${mySqlContainer.username}")
+			println("Password: ${mySqlContainer.password}")
 		}
 	}
 }

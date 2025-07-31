@@ -2,6 +2,7 @@
 services:
   mysql:
     image: mysql:8.0
+    container_name: concert-mysql
     ports:
       - "3306:3306"
     environment:
@@ -9,7 +10,9 @@ services:
       - MYSQL_USER=application
       - MYSQL_PASSWORD=application
       - MYSQL_DATABASE=hhplus
+    command: --innodb_redo_log_capacity=1G
     volumes:
+      - ./init:/docker-entrypoint-initdb.d
       - ./data/mysql/:/var/lib/mysql
 
 networks:

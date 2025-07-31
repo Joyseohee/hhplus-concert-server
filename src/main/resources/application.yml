@@ -6,6 +6,9 @@ spring:
   datasource:
     name: HangHaePlusDataSource
     type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    username: application
+    password: application
     hikari:
       maximum-pool-size: 3
       connection-timeout: 10000
@@ -31,16 +34,35 @@ springdoc:
 
 
 ---
-spring.config.activate.on-profile: local, test
+spring.config.activate.on-profile: test
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:p6spy:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     username: application
     password: application
+    hikari:
+      jdbc-url: jdbc:p6spy:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+      driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
 
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+logging:
+  level:
+    com.zaxxer.hikari: DEBUG
+    com.p6spy: DEBUG
