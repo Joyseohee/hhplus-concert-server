@@ -2,76 +2,111 @@ package kr.hhplus.be.server.application
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
-import kr.hhplus.be.server.domain.model.Seat
-import kr.hhplus.be.server.domain.repository.SeatHoldRepository
-import kr.hhplus.be.server.domain.repository.SeatRepository
-import kr.hhplus.be.server.domain.model.UserBalance
-import kr.hhplus.be.server.domain.repository.UserBalanceRepository
-import org.springframework.beans.factory.annotation.Autowired
+import kr.hhplus.be.server.domain.model.*
+import kr.hhplus.be.server.domain.repository.*
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import java.time.Instant
 import java.util.UUID
 
 @SpringBootTest
-class HoldSeatUseCaseTest @Autowired constructor(
-    val holdSeatUseCase: HoldSeatUseCase,
-    val userBalanceRepository: UserBalanceRepository,
-    val seatRepository: SeatRepository,
-    val seatHoldRepository: SeatHoldRepository,
-) : BehaviorSpec({
-    val validUserId = 1L
-    val invalidUserId = 2L
-    val seatId = 1L
-    val request = HoldSeatUseCase.Input(
-        seatHoldUuid = UUID.randomUUID().toString(),
-        concertId = 1L,
-        seatId = seatId
-    )
+@ActiveProfiles("test")
+class HoldSeatUseCaseTest(
+    private val holdSeatUseCase: HoldSeatUseCase,
+    private val seatRepository: SeatRepository,
+    private val reservationRepository: ReservationRepository,
+    private val seatHoldRepository: SeatHoldRepository
+) : BehaviorSpec() {
 
-    beforeTest {
-        // 테스트를 위한 초기화 로직
-        userBalanceRepository.clear()
-        seatRepository.clear()
-        seatHoldRepository.clear()
+    override fun extensions() = listOf(SpringExtension)
 
-        userBalanceRepository.save(
-            UserBalance.create(userId = validUserId, balance = 50_000L)
-        )
-
-        for (i in 1..10) {
-            seatRepository.save(
-                Seat.create(
-                    seatNumber = i,
-                    price = 130_000L
-                )
-            )
-        }
-        seatHoldRepository
+    companion object {
+        private const val CONCERT_ID = 1L
+        private const val SEAT_NUMBER = 5
+        private const val PRICE = 20_000L
     }
 
-    given("좌석 점유를 요청할 때") {
-        `when`("점유되지 않은 좌석을 유효한 사용자가 요청할 때") {
-            then("점유가 성공적으로 이루어져야 한다") {
-                val result = holdSeatUseCase.holdSeat(userId = validUserId, input = request)
-                result.seatHoldUuid shouldBe request.seatHoldUuid
-                result.seatId shouldBe request.seatId
-                result.expiresAt.isAfter(Instant.now()) shouldBe true
-            }
+    init {
+        afterEach {
+            reservationRepository.clear()
+            seatHoldRepository.clear()
+            seatRepository.clear()
         }
-        `when`("이미 점유된 좌석을 점유하려고 할 때") {
-            then("예외가 발생해야 한다") {
-                shouldThrowExactly<IllegalArgumentException> {
-                    holdSeatUseCase.holdSeat(userId = validUserId, input = request)
-                    holdSeatUseCase.holdSeat(
-                        userId = invalidUserId, input = HoldSeatUseCase.Input(
-                            seatHoldUuid = UUID.randomUUID().toString(),
-                            concertId = request.concertId,
-                            seatId = request.seatId
+
+        given("좌석 점유 요청을 할 때") {
+            `when`("유효한 좌석이고 아직 예약되지 않았다면") {
+                then("정상적으로 점유가 생성된다") {
+                    val seat = seatRepository.save(
+                        Seat.create(seatNumber = SEAT_NUMBER, price = PRICE)
+                    )
+                    val uuid = UUID.randomUUID().toString()
+
+                    val output = holdSeatUseCase.holdSeat(
+                        HoldSeatUseCase.Input(
+                            seatHoldUuid = uuid,
+                            concertId = CONCERT_ID,
+                            seatId = seat.seatId!!
+                        ),
+                        userId = 123L
+                    )
+
+                    output.seatHoldUuid shouldBe uuid
+                    output.seatId       shouldBe seat.seatId
+                    output.expiresAt     shouldBe seatHoldRepository
+                        .findByUuid(uuid)!!.expiresAt
+
+                    val persisted = seatHoldRepository.findByUuid(uuid)!!
+                    persisted.seatHoldUuid shouldBe uuid
+                    persisted.seatId       shouldBe seat.seatId
+                }
+            }
+
+            `when`("존재하지 않는 좌석 ID로 요청하면") {
+                then("예외가 발생한다") {
+                    val badId = 9999L
+                    shouldThrowExactly<IllegalArgumentException> {
+                        holdSeatUseCase.holdSeat(
+                            HoldSeatUseCase.Input(
+                                seatHoldUuid = UUID.randomUUID().toString(),
+                                concertId = CONCERT_ID,
+                                seatId = badId
+                            ),
+                            userId = 1L
+                        )
+                    }
+                }
+            }
+
+            `when`("이미 예약된 좌석에 대해 요청하면") {
+                then("예외가 발생한다") {
+                    val seat = seatRepository.save(
+                        Seat.create(seatNumber = SEAT_NUMBER, price = PRICE)
+                    )
+                    reservationRepository.save(
+                        Reservation.create(
+                            reservationUuid = UUID.randomUUID().toString(),
+                            userId = 999L,
+                            concertId = CONCERT_ID,
+                            seatId = seat.seatId!!,
+                            reservedAt = Instant.now(),
+                            price = PRICE
                         )
                     )
+
+                    shouldThrowExactly<IllegalArgumentException> {
+                        holdSeatUseCase.holdSeat(
+                            HoldSeatUseCase.Input(
+                                seatHoldUuid = UUID.randomUUID().toString(),
+                                concertId = CONCERT_ID,
+                                seatId = seat.seatId
+                            ),
+                            userId = 1L
+                        )
+                    }
                 }
             }
         }
     }
-})
+}

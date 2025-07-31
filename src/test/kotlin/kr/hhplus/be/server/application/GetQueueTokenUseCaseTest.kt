@@ -2,80 +2,74 @@ package kr.hhplus.be.server.application
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
-import kr.hhplus.be.server.domain.model.UserBalance
-import kr.hhplus.be.server.domain.repository.UserBalanceRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @SpringBootTest
-class GetQueueTokenUseCaseTest @Autowired constructor(
-    val getQueueTokenUseCase: GetQueueTokenUseCase,
-    val userBalanceRepository: UserBalanceRepository,
-    val queueTokenRepository: QueueTokenRepository,
-) : BehaviorSpec({
-    val validUserId = 1L
-    val invalidUserId = 2L
-    val validToken = UUID.randomUUID().toString()
-    val expiredToken = UUID.randomUUID().toString()
-    val notExistToken = UUID.randomUUID().toString()
+@ActiveProfiles("test")
+class GetQueueTokenUseCaseTest(
+    private val getQueueTokenUseCase: GetQueueTokenUseCase,
+    private val queueTokenRepository: QueueTokenRepository
+) : BehaviorSpec() {
 
-    beforeTest {
-        userBalanceRepository.clear()
-        queueTokenRepository.clear()
-        userBalanceRepository.save(
-            UserBalance.Companion.create(userId = validUserId, balance = 50_000L)
-        )
-        queueTokenRepository.save(
-            QueueToken.Companion.create(
-                userId = validUserId,
-                token = validToken,
-                expiresAt = Instant.now().plusSeconds(60),
-                status = QueueToken.Status.WAITING
-            )
-        )
-        queueTokenRepository.save(
-            QueueToken.Companion.create(
-                userId = validUserId,
-                token = expiredToken,
-                expiresAt = Instant.now().minusSeconds(60),
-                status = QueueToken.Status.WAITING
-            )
-        )
-    }
+    override fun extensions() = listOf(SpringExtension)
 
-    given("유효한 토큰이 주어졌을 때") {
-        `when`("getToken을 호출하면") {
-            then("정상적으로 Output이 반환된다") {
-                val result = getQueueTokenUseCase.getToken(validToken)
-                result.status shouldBe QueueToken.Status.WAITING.name
-                result.position shouldBe 1
-                result.expiresAt.isAfter(Instant.now()) shouldBe true
+    init {
+        afterEach {
+            queueTokenRepository.clear()
+        }
+
+        given("토큰 조회 요청이 들어올 때") {
+
+            `when`("대기(Waiting) 상태의 토큰이 존재하면") {
+                then("status=WAITING, position=1, expiresAt이 반환된다") {
+                    // 준비: Waiting 토큰 저장
+                    val userId = 1L
+                    val waiting = QueueToken.create(userId = userId)
+                    val saved = queueTokenRepository.save(waiting)
+
+                    // 실행
+                    val output = getQueueTokenUseCase.getToken(saved.token)
+
+                    // 검증
+                    output.status     shouldBe QueueToken.Status.WAITING.name
+                    output.position   shouldBe 1
+                    output.expiresAt  shouldBe saved.expiresAt
+                }
+            }
+
+            `when`("활성(Active) 상태의 토큰이 존재하면") {
+                then("status=ACTIVE, position=1, expiresAt이 반환된다") {
+                    // 준비: Active 토큰 생성/저장
+                    val userId = 2L
+                    val waiting = QueueToken.create(userId = userId)
+                    val active = waiting.activate(position = 1)
+                    val saved = queueTokenRepository.save(active)
+
+                    // 실행
+                    val output = getQueueTokenUseCase.getToken(saved.token)
+
+                    // 검증
+                    output.status     shouldBe QueueToken.Status.ACTIVE.name
+                    output.position   shouldBe 1
+                    output.expiresAt  shouldBe saved.expiresAt
+                }
+            }
+
+            `when`("존재하지 않는 토큰으로 조회하면") {
+                then("예외가 발생한다") {
+                    val missing = UUID.randomUUID().toString()
+                    shouldThrowExactly<IllegalArgumentException> {
+                        getQueueTokenUseCase.getToken(missing)
+                    }.message?.contains("토큰을 찾을 수 없습니다") shouldBe true
+                }
             }
         }
     }
-
-    given("존재하지 않는 토큰이 주어졌을 때") {
-        `when`("getToken을 호출하면") {
-            then("예외가 발생한다") {
-	            shouldThrowExactly<IllegalArgumentException> {
-		            getQueueTokenUseCase.getToken(notExistToken)
-	            }
-            }
-        }
-    }
-
-    given("만료된 토큰이 주어졌을 때") {
-        `when`("getToken을 호출하면") {
-            then("예외가 발생한다") {
-	            shouldThrowExactly<IllegalArgumentException> {
-		            getQueueTokenUseCase.getToken(expiredToken)
-	            }
-            }
-        }
-    }
-})
+}

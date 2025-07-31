@@ -1,55 +1,65 @@
 package kr.hhplus.be.server.application
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
+import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.model.QueueToken.Companion.MAX_ACTIVE_COUNT
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
-import kr.hhplus.be.server.domain.model.UserBalance
-import kr.hhplus.be.server.domain.repository.UserBalanceRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @SpringBootTest
-class RequestQueueTokenUseCaseTest @Autowired constructor(
-	val requestQueueTokenUseCase: RequestQueueTokenUseCase,
-	val userBalanceRepository: UserBalanceRepository,
-	val queueTokenRepository: QueueTokenRepository,
-) : BehaviorSpec({
-	val validUserId = 1L
-	val invalidUserId = 2L
+@ActiveProfiles("test")
+class RequestQueueTokenUseCaseTest(
+	private val requestQueueTokenUseCase: RequestQueueTokenUseCase,
+	private val queueTokenRepository: QueueTokenRepository
+) : BehaviorSpec() {
 
-	beforeTest {
-		userBalanceRepository.clear()
-		queueTokenRepository.clear()
-		userBalanceRepository.save(
-			UserBalance.create(userId = validUserId, balance = 50_000L)
-		)
-	}
+	override fun extensions() = listOf(SpringExtension)
 
-	given("유효한 유저가 토큰을 요청할 때") {
-		`when`("createToken을 호출하면") {
-			then("정상적으로 Output이 반환된다") {
-				val result = requestQueueTokenUseCase.createToken(validUserId)
-				result.position shouldBe 0
-				result.token.isNotBlank() shouldBe true
-				result.expiresAt.isAfter(Instant.now()) shouldBe true
-			}
+	init {
+		afterEach {
+			queueTokenRepository.clear()
 		}
-	}
 
-	given("토큰 저장 후 position이 정상적으로 반환되는지 확인") {
-		`when`("여러 유저가 토큰을 발급받은 후") {
-			then("position이 1 이상으로 반환된다") {				// 여러 유저의 토큰을 미리 저장
-				val (from, to) = (2L to MAX_ACTIVE_COUNT.toLong() + 2L)
-				for (i in from..to) {
-					userBalanceRepository.save(UserBalance.create(userId = i, balance = 10_000L))
-					requestQueueTokenUseCase.createToken(userId = i)
+		given("새 토큰 발급을 요청할 때") {
+			`when`("현재 활성 토큰 수가 49개 미만인 경우") {
+				then("토큰이 ACTIVE 상태로 발급되어 저장된다") {
+					repeat(10) {
+						queueTokenRepository.save(
+							QueueToken.create(userId = it.toLong(), status = QueueToken.Status.ACTIVE)
+						)
+					}
+					val before = Instant.now()
+
+					val output = requestQueueTokenUseCase.createToken(userId = 100L)
+
+					output.status shouldBe QueueToken.Status.ACTIVE.name
+					val saved = queueTokenRepository.findValidatedByToken(output.token)!!
+					saved.status shouldBe QueueToken.Status.ACTIVE
+					val diff = ChronoUnit.MINUTES.between(before, saved.expiresAt)
+					diff shouldBe 5L
 				}
-				val result = requestQueueTokenUseCase.createToken(validUserId)
-				result.position shouldBe 2
+			}
+
+			`when`("현재 활성 토큰 수가 50개 이상인 경우") {
+				then("토큰이 WAITING 상태로 발급되어 저장된다") {
+					repeat(MAX_ACTIVE_COUNT) {
+						queueTokenRepository.save(
+							QueueToken.create(userId = it.toLong(), status = QueueToken.Status.ACTIVE)
+						)
+					}
+
+					val output = requestQueueTokenUseCase.createToken(userId = 200L)
+
+					output.status shouldBe QueueToken.Status.WAITING.name
+					val saved = queueTokenRepository.findValidatedByToken(output.token)!!
+					saved.status shouldBe QueueToken.Status.WAITING
+				}
 			}
 		}
 	}
-})
-
+}

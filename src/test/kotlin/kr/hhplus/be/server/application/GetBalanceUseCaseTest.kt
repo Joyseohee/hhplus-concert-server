@@ -1,46 +1,54 @@
 package kr.hhplus.be.server.application
 
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.domain.model.UserBalance
 import kr.hhplus.be.server.domain.repository.UserBalanceRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
-class GetBalanceUseCaseTest @Autowired constructor(
+@ActiveProfiles("test")
+class GetBalanceUseCaseTest(
     private val getBalanceUseCase: GetBalanceUseCase,
-    private val balanceRepository: UserBalanceRepository
-) : BehaviorSpec({
+    private val userBalanceRepository: UserBalanceRepository
+) : BehaviorSpec() {
 
-    val userId = 1L
-    val expectedBalance = 30_000L
+    override fun extensions() = listOf(SpringExtension)
 
-    beforeTest {
-        balanceRepository.clear()
-        balanceRepository.save(UserBalance.create(userId, expectedBalance)) // 초기 데이터 설정
-    }
-
-    given("사용자의 잔액을 조회할 때") {
-        `when`("유효한 사용자의 잔액을 조회하면") {
-            then("잔액이 올바르게 반환되어야 한다") {
-                val input = GetBalanceUseCase.Input(userId)
-                val output = getBalanceUseCase.getBalance(input)
-
-                output.balance shouldBe expectedBalance
-            }
+    init {
+        afterEach {
+            userBalanceRepository.clear()
         }
 
-        `when`("존재하지 않는 사용자의 잔액을 조회할 때") {
-            val invalidUserId = 999L
+        given("잔액 조회 요청이 들어오면") {
+            `when`("존재하는 사용자 ID로 요청하면") {
+                then("현재 잔액을 반환해야 한다") {
+                    val saved = userBalanceRepository.save(
+                        UserBalance.create(balance = 123_456L)
+                    )
 
-            then("예외가 발생해야 한다") {
-                val input = GetBalanceUseCase.Input(invalidUserId)
-                shouldThrow<IllegalArgumentException> {
-                    getBalanceUseCase.getBalance(input)
+                    val output = getBalanceUseCase.getBalance(
+                        GetBalanceUseCase.Input(userId = saved.userId!!)
+                    )
+
+                    output.balance shouldBe 123_456L
+                }
+            }
+
+            `when`("존재하지 않는 사용자 ID로 요청하면") {
+                then("IllegalArgumentException이 발생해야 한다") {
+                    val missingUserId = 999L
+
+                    shouldThrowExactly<IllegalArgumentException> {
+                        getBalanceUseCase.getBalance(
+                            GetBalanceUseCase.Input(userId = missingUserId)
+                        )
+                    }.message?.contains("사용자 잔액을 찾을 수 없습니다") shouldBe true
                 }
             }
         }
     }
-})
+}
