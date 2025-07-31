@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kr.hhplus.be.server.support.error.SeatHoldUnavailableException
 import java.time.Instant
 
 class SeatHoldTest : FreeSpec({
@@ -74,7 +73,7 @@ class SeatHoldTest : FreeSpec({
 		}
 
 		"좌석 점유 제한 시각이 유효하지 않은 경우 예외가 발생한다" {
-			shouldThrowExactly<SeatHoldUnavailableException> {
+			shouldThrowExactly<IllegalArgumentException> {
 				SeatHold.held(
 					seatHoldId = seatHoldId,
 					seatHoldUuid = seatHoldUuid,
