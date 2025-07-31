@@ -10,12 +10,11 @@ class ListConcertUseCase(
 ) {
 
 	fun listConcerts(): Output {
-		val concerts = concertRepository.findAll()
-			.sortedBy { it.showDateTime }
+		val concerts = concertRepository.findAllOrderByShowDateTime()
 
 		return Output(availableDates = concerts.map { concert ->
 			Output.ConcertInfo(
-				concertId = concert.concertId,
+				concertId = concert.concertId!!,
 				concertDateTime = concert.showDateTime.toString(),
 				concertVenue = concert.venue,
 				concertTitle = concert.title,

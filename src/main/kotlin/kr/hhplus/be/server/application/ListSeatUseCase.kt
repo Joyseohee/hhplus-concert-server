@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.repository.ConcertRepository
+import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import kr.hhplus.be.server.domain.repository.SeatRepository
 import org.springframework.stereotype.Service
@@ -10,15 +11,12 @@ import org.springframework.stereotype.Service
 class ListSeatUseCase(
 	private val concertRepository: ConcertRepository,
 	private val seatRepository: SeatRepository,
-	private val seatHoldRepository: SeatHoldRepository
+	private val seatHoldRepository: SeatHoldRepository,
+	private val reservationRepository: ReservationRepository,
 ) {
 	fun listAvailableSeats(concertId: Long, userId: Long): Output {
 		val concert = concertRepository.findById(concertId)
 			?: throw IllegalArgumentException("콘서트를 찾을 수 없습니다: concertId=$concertId")
-
-		val seatHolds = seatHoldRepository.findAllByConcertId(concert.concertId)
-
-		val seatHoldMap = seatHolds.associateBy { it.seatId }
 
 		val seat = seatRepository.findAll()
 
@@ -29,6 +27,14 @@ class ListSeatUseCase(
 			)
 		}
 
+		val seatIds = seat.map { it.seatId!! }
+
+		val seatHolds = seatHoldRepository.findAllConcertIdAndSeatIdAndNotExpired(concertId, seatIds)
+
+		val seatHoldMap = seatHolds.associateBy { it.seatId }
+
+		val reservedSeats = reservationRepository.findAllBySeatId(seatIds)
+
 		return Output(
 			concertId = concertId,
 			availableSeats = seat.map { seat ->
@@ -37,7 +43,7 @@ class ListSeatUseCase(
 					seatId = seat.seatId!!,
 					seatNumber = seat.seatNumber,
 					price = seat.price,
-					isAvailable = seatHold?.isAvailable(userId) ?: true,
+					isAvailable = (seatHold?.isAvailable(userId) ?: true) && reservedSeats.none { it.seatId == seat.seatId },
 				)
 			}.sortedBy { it.seatNumber }
 		)

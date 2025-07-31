@@ -13,7 +13,7 @@ class GetQueueTokenUseCase(
 		val queueToken = queueTokenRepository.findValidatedByToken(token)
 			?: throw IllegalArgumentException("토큰을 찾을 수 없습니다: $token")
 
-		val position = queueTokenRepository.findPositionByToken(token)
+		val position = queueTokenRepository.findPositionById(queueToken.tokenId!!)
 			?: throw IllegalArgumentException("토큰의 대기 순번을 찾을 수 없습니다.")
 
 		return Output(

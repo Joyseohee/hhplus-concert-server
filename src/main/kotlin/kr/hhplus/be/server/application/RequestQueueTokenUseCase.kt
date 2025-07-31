@@ -19,7 +19,7 @@ class RequestQueueTokenUseCase(
 
 		val token = queueTokenRepository.save(activatedIfPossibleToken)
 
-		val position = queueTokenRepository.findPositionByToken(token.token)
+		val position = queueTokenRepository.findPositionById(token.tokenId!!)
 
 		return Output(
 			token = token.token,

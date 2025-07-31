@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.model.SeatHold
+import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import kr.hhplus.be.server.domain.repository.SeatRepository
 import org.springframework.stereotype.Service
@@ -10,12 +11,16 @@ import java.time.Instant
 @Service
 class HoldSeatUseCase(
 	private val seatRepository: SeatRepository,
-	private val seatHoldRepository: SeatHoldRepository
+	private val seatHoldRepository: SeatHoldRepository,
+	private val reservationRepository: ReservationRepository,
 ) {
 
 	fun holdSeat(input: Input, userId: Long): Output {
 		val seat = seatRepository.findById(input.seatId)
 			?: throw IllegalArgumentException("존재하지 않는 좌석입니다. 좌석 ID: ${input.seatId}")
+
+		reservationRepository.findBySeatId(input.seatId)
+			?.let { throw IllegalArgumentException("이미 예약된 좌석입니다. 좌석 ID: ${input.seatId}") }
 
 		val newSeatHold = SeatHold.held(
 			seatHoldUuid = input.seatHoldUuid,
@@ -24,12 +29,12 @@ class HoldSeatUseCase(
 			seatId = seat.seatId!!
 		)
 
-		// todo - 동시성 문제 발생 가능 지점 : 좌석에 unique constraint 필요, 점유 만료 후 delete 처리 필요
+		// todo - 동시성 문제 발생 가능 지점 : 좌석 + 콘서트에 unique constraint 필요, 점유 만료 후 delete 처리 필요
 		val confirmedSeatHold = seatHoldRepository.save(newSeatHold)
 
 		return Output(
 			seatHoldUuid = confirmedSeatHold.seatHoldUuid,
-			seatId = confirmedSeatHold.userId,
+			seatId = confirmedSeatHold.seatId,
 			expiresAt = confirmedSeatHold.expiresAt
 		)
 	}

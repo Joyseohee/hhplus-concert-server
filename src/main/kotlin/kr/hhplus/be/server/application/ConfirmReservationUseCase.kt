@@ -22,7 +22,7 @@ class ConfirmReservationUseCase(
 		userId: Long,
 		input: Input
 	): Output {
-		val seatHold = seatHoldRepository.findValidSeatHoldBySeatId(input.seatId)
+		val seatHold = seatHoldRepository.findValidSeatHoldBySeatId(userId = userId, seatId = input.seatId)
 			?: throw IllegalArgumentException("유효하지 않는 좌석 점유 요청입니다. 좌석 ID: ${input.seatId}")
 
 		val seat = seatRepository.findById(seatHold.seatId)
@@ -46,13 +46,14 @@ class ConfirmReservationUseCase(
 
 		// 예약 확정
 		val confirmedReservation = reservationRepository.save(reservation)
-		// 좌석 점유 상태 갱신 - todo : 낙관적 lock을 사용하여 동시성 문제 해결
+
+		// 좌석 점유 만료
 		seatHoldRepository.deleteById(seatHold)
+
 		// 토큰 만료
-		val queueToken = queueTokenRepository.findById(userId)
+		val queueToken = queueTokenRepository.findByUserId(userId)
 			?: throw IllegalArgumentException("사용자 토큰을 찾을 수 없습니다. 사용자 ID: $userId")
-		val expiredQueueToken = queueToken.expire()
-		queueTokenRepository.save(expiredQueueToken)
+		queueTokenRepository.deleteById(queueToken.tokenId!!)
 
 		return Output(
 			concertId = confirmedReservation.concertId,
