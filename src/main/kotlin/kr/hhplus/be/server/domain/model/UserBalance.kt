@@ -1,11 +1,27 @@
 package kr.hhplus.be.server.domain.model
 
-import kotlin.require
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.Id
+import jakarta.persistence.SequenceGenerator
+import jakarta.persistence.Table
+import kr.hhplus.be.server.infrastructure.persistence.jpa.BaseEntity
 
-data class UserBalance private constructor(
+@Entity
+@Table(name = "users")
+@SequenceGenerator(
+	name = "user_balance_seq",
+	sequenceName = "users_user_balance_id_seq",
+	allocationSize = 1
+)
+class UserBalance private constructor(
+	@Id
+	@GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "user_balance_seq")
 	val userId: Long?,
+	@Column(name = "balance", nullable = false)
 	val balance: Long,
-) {
+) : BaseEntity() {
 
 	init {
 		require(balance in MIN_POINT..MAX_POINT) {
@@ -18,7 +34,7 @@ data class UserBalance private constructor(
 		const val MIN_TRANSACTION_AMOUNT = 1L
 
 		fun create(
-			userId: Long,
+			userId: Long? = null,
 			balance: Long
 		): UserBalance {
 			return UserBalance(userId = userId, balance = balance)
@@ -47,5 +63,12 @@ data class UserBalance private constructor(
 	fun use(amount: Long): UserBalance {
 		validateUsePolicy(amount)
 		return copy(balance = balance - amount)
+	}
+
+	private fun copy(
+		userId: Long? = this.userId,
+		balance: Long = this.balance
+	): UserBalance {
+		return UserBalance(userId, balance)
 	}
 }

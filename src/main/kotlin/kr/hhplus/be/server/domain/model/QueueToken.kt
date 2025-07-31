@@ -1,17 +1,32 @@
 package kr.hhplus.be.server.domain.model
 
+import jakarta.persistence.*
+import kr.hhplus.be.server.infrastructure.persistence.jpa.BaseEntity
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-data class QueueToken private constructor(
-	val tokenId: Long?,
+@Entity
+@Table(name = "tokens")
+@SequenceGenerator(
+	name = "token_seq",
+	sequenceName = "tokens_token_id_seq",
+	allocationSize = 1
+)
+class QueueToken private constructor(
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "token_seq")
+	val tokenId: Long? = null,
+	@Column(name = "user_id", nullable = false)
 	val userId: Long,
+	@Column(name = "token", nullable = false, unique = true)
 	val token: String,
+	@Column(name = "expires_at", nullable = false)
 	val expiresAt: Instant,
+	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
 	val status: Status,
-	val createdAt: Instant = Instant.now()
-) {
+) : BaseEntity() {
 	enum class Status {
 		WAITING, ACTIVE, EXPIRED
 	}
@@ -52,5 +67,21 @@ data class QueueToken private constructor(
 			return this.copy(status = Status.ACTIVE, expiresAt = Instant.now().plus(HOLD_TTL, ChronoUnit.MINUTES))
 		}
 		return this
+	}
+
+	fun copy(
+		tokenId: Long? = this.tokenId,
+		userId: Long = this.userId,
+		token: String = this.token,
+		expiresAt: Instant = this.expiresAt,
+		status: Status = this.status
+	): QueueToken {
+		return QueueToken(
+			tokenId = tokenId ?: this.tokenId,
+			userId = userId,
+			token = token,
+			expiresAt = expiresAt,
+			status = status
+		)
 	}
 }
