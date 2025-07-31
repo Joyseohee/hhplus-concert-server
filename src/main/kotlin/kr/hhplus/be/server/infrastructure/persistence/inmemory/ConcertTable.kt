@@ -2,11 +2,11 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.Concert
 import kr.hhplus.be.server.domain.repository.ConcertRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
-@Component
+@Repository
 class ConcertTable : ConcertRepository {
     private val table = ConcurrentHashMap<Long, Concert>()
 
@@ -37,9 +37,9 @@ class ConcertTable : ConcertRepository {
         return table[id]
     }
 
-    override fun findAll(): List<Concert> {
+    override fun findAllOrderByShowDateTime(): List<Concert> {
         Thread.sleep(Math.random().toLong() * 200L)
-        return table.values.toList()
+        return table.values.sortedBy { it.showDateTime }
     }
 
     override fun save(
@@ -56,6 +56,11 @@ class ConcertTable : ConcertRepository {
 
         table[concertId] = concert
         return concert
+    }
+
+    override fun saveAll(concerts: List<Concert>): List<Concert> {
+        Thread.sleep(Math.random().toLong() * 300L)
+        return concerts.map { save(it) }
     }
 
     override fun clear() {

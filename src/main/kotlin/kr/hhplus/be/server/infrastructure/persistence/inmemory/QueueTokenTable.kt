@@ -2,22 +2,18 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
-@Component
-class QueueTokenTable : QueueTokenRepository {
+@Repository
+class QueueTokenTable : QueueTokenRepository  {
 	private val table = ConcurrentHashMap<Long, QueueToken>()
 
-	override fun findAll(): List<QueueToken> {
+	override fun findByUserId(userId: Long): QueueToken? {
 		Thread.sleep(Math.random().toLong() * 200L)
-		return table.values.toList()
-	}
-
-	override fun findById(id: Long): QueueToken? {
-		Thread.sleep(Math.random().toLong() * 200L)
-		return table[id]
+		return table.values
+				.find { it.userId == userId && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
 	override fun findValidatedByToken(token: String): QueueToken? {
@@ -26,51 +22,37 @@ class QueueTokenTable : QueueTokenRepository {
 				.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
-	override fun findWaitingTokensOrderByCreatedAt(): List<QueueToken> {
-		Thread.sleep(Math.random().toLong() * 200L)
+	override fun findAllWaitingTokenForActivate(i: Int): List<QueueToken> {
 		return table.values
 			.filter { it.status == QueueToken.Status.WAITING }
 			.sortedBy { it.createdAt }
+			.take(i)
+			.map { it.copy(status = QueueToken.Status.ACTIVE) }
 			.toList()
 	}
 
-	override fun findPositionByToken(token: String): Int {
+	override fun findPositionById(id: Long): Int {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
 			.filter { it.status == QueueToken.Status.WAITING }
 			.sortedBy { it.createdAt }
-			.indexOfFirst { it.token == token }
+			.indexOfFirst { it.tokenId == id }
 			.let { if (it >= 0) it + 1 else 0 }
 	}
 
-	override fun findTokenWithPosition(token: String): Pair<QueueToken, Int>? {
-		Thread.sleep(Math.random().toLong() * 200L)
-		return table.values
-			.filter { it.status == QueueToken.Status.WAITING }
-			.sortedBy { it.createdAt }
-			.indexOfFirst { it.token == token }
-			.takeIf { it >= 0 }
-			?.let { index ->
-				val queueToken = table.values
-					.filter { it.status == QueueToken.Status.WAITING }
-					.sortedBy { it.createdAt }[index]
-				queueToken to (index + 1)
-			}
-	}
-
-	override fun countByStatus(active: QueueToken.Status): Int {
+	 override fun countByStatus(active: QueueToken.Status): Int {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values.count { it.status == active }
 	}
 
-    override fun findTokensToExpire(): List<QueueToken> {
+	override fun findTokensToExpire(): List<QueueToken> {
         return table.values
             .filter { it.expiresAt.isBefore(Instant.now()) && it.status != QueueToken.Status.EXPIRED }
             .sortedBy { it.expiresAt }
             .toList()
     }
 
-    override fun save(
+     override fun save(
         queueToken: QueueToken
     ): QueueToken {
         Thread.sleep(Math.random().toLong() * 300L)
@@ -85,6 +67,20 @@ class QueueTokenTable : QueueTokenRepository {
 
 		table[tokenId] = queueToken
 		return queueToken
+	}
+
+	override fun saveAll(queueTokens: List<QueueToken>): List<QueueToken> {
+		return queueTokens.map { save(it) }
+	}
+
+	override fun deleteById(id: Long) {
+		Thread.sleep(Math.random().toLong() * 200L)
+		table.remove(id)
+	}
+
+	override fun deleteByIds(ids: List<Long>) {
+		Thread.sleep(Math.random().toLong() * 200L)
+		ids.forEach { table.remove(it) }
 	}
 
 	override fun clear() {

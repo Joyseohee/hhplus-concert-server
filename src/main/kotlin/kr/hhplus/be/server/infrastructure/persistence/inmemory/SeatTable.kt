@@ -2,11 +2,10 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.Seat
 import kr.hhplus.be.server.domain.repository.SeatRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.get
 
-@Component
+@Repository
 class SeatTable : SeatRepository {
     private val table = ConcurrentHashMap<Long, Seat>()
 
@@ -24,7 +23,7 @@ class SeatTable : SeatRepository {
         )
     }
 
-    override fun findById(id: Long?): Seat? {
+    override fun findById(id: Long): Seat? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table[id]
     }
@@ -47,6 +46,13 @@ class SeatTable : SeatRepository {
 
         table[seatId] = seat
         return seat
+    }
+
+    override fun saveAll(
+        seats: List<Seat>
+    ): List<Seat> {
+        Thread.sleep(Math.random().toLong() * 300L)
+        return seats.map { save(it) }
     }
 
     override fun clear() {

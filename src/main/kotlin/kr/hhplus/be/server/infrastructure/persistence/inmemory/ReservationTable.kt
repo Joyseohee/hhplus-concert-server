@@ -2,21 +2,19 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.Reservation
 import kr.hhplus.be.server.domain.repository.ReservationRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 
-@Component
+@Repository
 class ReservationTable : ReservationRepository {
 	private val table = ConcurrentHashMap<Long, Reservation>()
 
-	override fun findById(id: Long): Reservation? {
-		Thread.sleep(Math.random().toLong() * 200L)
-		return table[id]
+	override fun findBySeatId(seatId: Long): Reservation? {
+		return table.values.firstOrNull { it.seatId == seatId }
 	}
 
-	override fun findByUuid(uuid: String): Reservation? {
-		Thread.sleep(Math.random().toLong() * 200L)
-		return table.values.firstOrNull { it.reservationUuid == uuid }
+	override fun findAllBySeatId(seatIds: List<Long>): List<Reservation> {
+		return table.values.filter { it.seatId in seatIds }
 	}
 
 	override fun save(
@@ -45,4 +43,5 @@ class ReservationTable : ReservationRepository {
 	override fun clear() {
 		table.clear()
 	}
+
 }

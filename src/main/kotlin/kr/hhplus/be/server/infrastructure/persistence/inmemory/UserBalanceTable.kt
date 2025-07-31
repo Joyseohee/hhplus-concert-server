@@ -2,11 +2,10 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.UserBalance
 import kr.hhplus.be.server.domain.repository.UserBalanceRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.get
 
-@Component
+@Repository
 class UserBalanceTable : UserBalanceRepository {
     private val table = ConcurrentHashMap<Long, UserBalance>()
 
@@ -17,7 +16,7 @@ class UserBalanceTable : UserBalanceRepository {
         table[3L] = UserBalance.create(userId = 3L, balance = 3000)
     }
 
-    override fun findById(id: Long?): UserBalance? {
+    override fun findById(id: Long): UserBalance? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table[id]
     }
@@ -33,6 +32,10 @@ class UserBalanceTable : UserBalanceRepository {
         )
         table[userId] = userPoint
         return userPoint
+    }
+
+    override fun saveAll(userBalances: List<UserBalance>): List<UserBalance> {
+        return userBalances.map { save(it) }
     }
 
     override fun clear() {

@@ -2,41 +2,37 @@ package kr.hhplus.be.server.infrastructure.persistence.inmemory
 
 import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
-@Component
+@Repository
 class SeatHoldTable : SeatHoldRepository {
     private val table = ConcurrentHashMap<Long, SeatHold>()
-
-    override fun findAll(): List<SeatHold> {
-        Thread.sleep(Math.random().toLong() * 200L)
-        return table.values.toList()
-    }
-
-    override fun findById(id: Long): SeatHold? {
-        Thread.sleep(Math.random().toLong() * 200L)
-        return table[id]
-    }
 
     override fun findByUuid(uuid: String): SeatHold? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table.values.find { it.seatHoldUuid == uuid }
     }
 
-    override fun findValidSeatHoldBySeatId(seatId: Long): SeatHold? {
+    override fun findValidSeatHoldBySeatId(userId: Long, seatId: Long): SeatHold? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table.values.find {
                 it.seatId == seatId && it.expiresAt.isAfter(Instant.now())
+                && it.userId == userId
             }
 
     }
 
-    override fun findAllByConcertId(id: Long): List<SeatHold> {
-        Thread.sleep(Math.random().toLong() * 200L)
-        return table.values.filter { it.concertId == id }
+    override fun findAllConcertIdAndSeatIdAndNotExpired(
+        concertId: Long,
+        seatId: List<Long>
+    ): List<SeatHold> {
+        return table.values.filter {
+            it.concertId == concertId && seatId.contains(it.seatId)
+        }.sortedBy { it.expiresAt }
     }
+
 
     override fun findHoldsToExpire(): List<SeatHold> {
         return table.values.filter { it.expiresAt.isBefore(Instant.now()) }.sortedBy { it.expiresAt }
@@ -68,14 +64,18 @@ class SeatHoldTable : SeatHoldRepository {
         return seatHold
     }
 
+    override fun saveAll(seatHolds: List<SeatHold>): List<SeatHold> {
+        return seatHolds.map { save(it) }
+    }
+
     override fun deleteById(seatHold: SeatHold) {
         Thread.sleep(Math.random().toLong() * 200L)
         table.remove(seatHold.seatHoldId)
     }
 
-    override fun deleteByIds(seatHolds: List<SeatHold>) {
+    override fun deleteByIds(seatHoldIds: List<Long>) {
         Thread.sleep(Math.random().toLong() * 200L)
-        table.values.removeAll { seatHolds.any { hold -> hold.seatHoldId == it.seatHoldId } }
+        table.keys.removeAll(seatHoldIds)
     }
 
     override fun clear() {
