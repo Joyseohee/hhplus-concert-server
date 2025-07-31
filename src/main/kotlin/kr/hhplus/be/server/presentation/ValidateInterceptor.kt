@@ -18,7 +18,7 @@ class ValidateInterceptor(
         if (r.requestURI in userValidationPaths) {
             val id = r.getHeader("User-Id")?.toLongOrNull()
                 ?: throw IllegalAccessException("User-Id 오류")
-            tokenService.validateUserNotToken(id)
+            userService.validateUser(id)
             r.setAttribute("currentUserId", id)
         } else {
             val token = r.getHeader("Queue-Token")

@@ -16,7 +16,12 @@ class WebConfig(
     override fun addInterceptors(reg: InterceptorRegistry) {
         reg.addInterceptor(validateInterceptor)
             .addPathPatterns("/**")
-            .excludePathPatterns("/static/**")
+            .excludePathPatterns(
+                "/static/**",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html"
+            )
     }
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
