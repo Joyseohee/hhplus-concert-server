@@ -18,7 +18,9 @@ import java.lang.Exception
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 	// 공통 예외 처리
 	@ExceptionHandler(CoreException::class)
-	fun handleCoreException(ex: CoreException): ResponseEntity<ApiResponse<Any?>> {
+	fun handleCoreException(
+		ex: CoreException
+	): ResponseEntity<ApiResponse<Any?>> {
 		return ResponseEntity.status(ex.error.code).body(
 			ApiResponse(
 				code = "FAILED",
@@ -51,6 +53,19 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 		headers: HttpHeaders,
 		statusCode: HttpStatusCode,
 		request: WebRequest
+	): ResponseEntity<Any>? {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+			ApiResponse(
+				code = "INTERNAL_SERVER_ERROR",
+				message = ex.message ?: "서버 내부 오류가 발생했습니다.",
+				data = null
+			)
+		)
+	}
+
+	@ExceptionHandler(IllegalAccessException::class)
+	fun handleIllegal(
+		ex: IllegalAccessException,
 	): ResponseEntity<Any>? {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
 			ApiResponse(
