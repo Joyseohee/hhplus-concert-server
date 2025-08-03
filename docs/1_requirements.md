@@ -12,6 +12,7 @@
 - [시퀀스 다이어그램](3_sequence_diagram.md)
 - [상태 다이어그램](4_state_diagram.md)
 - [API 명세](https://joyseohee.github.io/hhplus-concert-server)
+- [DB 성능 보고서](5_db_report.md)
 
 ## 📋 요구사항
 
@@ -68,7 +69,7 @@
 
 4. **인증**
 
-    * `X-Client-Id`와 `X-Queue-Token` 헤더로 사용자·토큰 검증.
+    * `Client-Id`와 `Queue-Token` 헤더로 사용자·토큰 검증.
     * 토큰 UUID 충분한 랜덤성 보장.
 
 5. **신속성 & 가독성**

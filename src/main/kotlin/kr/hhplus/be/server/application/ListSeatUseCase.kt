@@ -1,0 +1,71 @@
+package kr.hhplus.be.server.application
+
+import io.swagger.v3.oas.annotations.media.Schema
+import kr.hhplus.be.server.domain.repository.ConcertRepository
+import kr.hhplus.be.server.domain.repository.ReservationRepository
+import kr.hhplus.be.server.domain.repository.SeatHoldRepository
+import kr.hhplus.be.server.domain.repository.SeatRepository
+import org.springframework.stereotype.Service
+
+@Service
+class ListSeatUseCase(
+	private val concertRepository: ConcertRepository,
+	private val seatRepository: SeatRepository,
+	private val seatHoldRepository: SeatHoldRepository,
+	private val reservationRepository: ReservationRepository,
+) {
+	fun listAvailableSeats(concertId: Long, userId: Long): Output {
+		val concert = concertRepository.findById(concertId)
+			?: throw IllegalArgumentException("콘서트를 찾을 수 없습니다: concertId=$concertId")
+
+		val seat = seatRepository.findAll()
+
+		if (seat.isEmpty()) {
+			return Output(
+				concertId = concertId,
+				availableSeats = emptyList()
+			)
+		}
+
+		val seatIds = seat.map { it.seatId!! }
+
+		val seatHolds = seatHoldRepository.findAllConcertIdAndSeatIdAndNotExpired(concertId, seatIds)
+
+		val seatHoldMap = seatHolds.associateBy { it.seatId }
+
+		val reservedSeats = reservationRepository.findAllBySeatId(seatIds)
+
+		return Output(
+			concertId = concertId,
+			availableSeats = seat.map { seat ->
+				val seatHold = seatHoldMap[seat.seatId]
+				Output.SeatInfo(
+					seatId = seat.seatId!!,
+					seatNumber = seat.seatNumber,
+					price = seat.price,
+					isAvailable = (seatHold?.isAvailable(userId) ?: true) && reservedSeats.none { it.seatId == seat.seatId },
+				)
+			}.sortedBy { it.seatNumber }
+		)
+	}
+
+	@Schema(name = "ListSeatRequest", description = "좌석 목록 조회 요청")
+	data class Output(
+		@Schema(description = "콘서트 ID", example = "1")
+		val concertId: Long,
+		@Schema(description = "좌석 목록")
+		val availableSeats: List<SeatInfo>
+	) {
+		data class SeatInfo(
+			@Schema(description = "좌석 id", example = "1")
+			val seatId: Long,
+			@Schema(description = "좌석 번호", example = "1")
+			val seatNumber: Int,
+			@Schema(description = "좌석 가격", example = "130000")
+			val price: Long,
+			@Schema(description = "예약 가능 여부", example = "true")
+			val isAvailable: Boolean,
+		)
+	}
+
+}

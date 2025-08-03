@@ -1,20 +1,30 @@
 package kr.hhplus.be.server.config
 
+import kr.hhplus.be.server.presentation.CurrentUserResolver
+import kr.hhplus.be.server.presentation.ValidateInterceptor
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.servlet.config.annotation.CorsRegistry
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
-class WebConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
-            .allowedOrigins(
-                "http://localhost:8080",
-                "https://joyseohee.github.io/hhplus-concert-server"
+class WebConfig(
+    private final val validateInterceptor: ValidateInterceptor,
+    private final val currentUserResolver: CurrentUserResolver
+) : WebMvcConfigurer {
+
+    override fun addInterceptors(reg: InterceptorRegistry) {
+        reg.addInterceptor(validateInterceptor)
+            .addPathPatterns("/**")
+            .excludePathPatterns(
+                "/static/**",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html"
             )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true)
-            .maxAge(3600)
+    }
+
+    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+        resolvers += currentUserResolver
     }
 }
