@@ -1,25 +1,14 @@
 package kr.hhplus.be.server.domain.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.SequenceGenerator
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import kr.hhplus.be.server.infrastructure.persistence.jpa.BaseEntity
 import java.time.Instant
 
 @Entity
 @Table(name = "reservations")
-@SequenceGenerator(
-	name = "reservation_seq",
-	sequenceName = "reservation_id_seq",
-	allocationSize = 1
-)
 class Reservation private constructor(
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reservation_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val reservationId: Long? = null,
 	@Column(name = "reservation_uuid", nullable = false, unique = true)
 	val reservationUuid: String,

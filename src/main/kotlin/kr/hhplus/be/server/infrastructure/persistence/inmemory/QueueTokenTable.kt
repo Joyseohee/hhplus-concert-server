@@ -7,19 +7,19 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 @Repository
-class QueueTokenTable : QueueTokenRepository  {
+class QueueTokenTable : QueueTokenRepository {
 	private val table = ConcurrentHashMap<Long, QueueToken>()
 
 	override fun findByUserId(userId: Long): QueueToken? {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
-				.find { it.userId == userId && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
+			.find { it.userId == userId && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
 	override fun findValidatedByToken(token: String): QueueToken? {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
-				.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
+			.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
 	override fun findAllWaitingTokenForActivate(i: Int): List<QueueToken> {
@@ -40,30 +40,30 @@ class QueueTokenTable : QueueTokenRepository  {
 			.let { if (it >= 0) it + 1 else 0 }
 	}
 
-	 override fun countByStatus(active: QueueToken.Status): Int {
+	override fun countByStatus(active: QueueToken.Status): Int {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values.count { it.status == active }
 	}
 
 	override fun findTokensToExpire(): List<QueueToken> {
-        return table.values
-            .filter { it.expiresAt.isBefore(Instant.now()) && it.status != QueueToken.Status.EXPIRED }
-            .sortedBy { it.expiresAt }
-            .toList()
-    }
+		return table.values
+			.filter { it.expiresAt.isBefore(Instant.now()) && it.status != QueueToken.Status.EXPIRED }
+			.sortedBy { it.expiresAt }
+			.toList()
+	}
 
-     override fun save(
-        queueToken: QueueToken
-    ): QueueToken {
-        Thread.sleep(Math.random().toLong() * 300L)
-        val tokenId = queueToken.tokenId ?: table.keys.maxOrNull()?.plus(1) ?: 1L
-        val queueToken = QueueToken.create(
-            tokenId = tokenId,
-            userId = queueToken.userId,
-            token = queueToken.token,
-            status = queueToken.status,
-            expiresAt = queueToken.expiresAt
-        )
+	override fun save(
+		queueToken: QueueToken
+	): QueueToken {
+		Thread.sleep(Math.random().toLong() * 300L)
+		val tokenId = queueToken.tokenId ?: table.keys.maxOrNull()?.plus(1) ?: 1L
+		val queueToken = QueueToken.create(
+			tokenId = tokenId,
+			userId = queueToken.userId,
+			token = queueToken.token,
+			status = queueToken.status,
+			expiresAt = queueToken.expiresAt
+		)
 
 		table[tokenId] = queueToken
 		return queueToken

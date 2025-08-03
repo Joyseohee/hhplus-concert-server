@@ -8,14 +8,9 @@ import java.util.*
 
 @Entity
 @Table(name = "tokens")
-@SequenceGenerator(
-	name = "token_seq",
-	sequenceName = "tokens_token_id_seq",
-	allocationSize = 1
-)
 class QueueToken private constructor(
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "token_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val tokenId: Long? = null,
 	@Column(name = "user_id", nullable = false)
 	val userId: Long,

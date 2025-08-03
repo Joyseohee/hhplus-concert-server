@@ -14,14 +14,9 @@ import java.time.Instant
 		)
 	]
 )
-@SequenceGenerator(
-	name = "seat_hold_seq",
-	sequenceName = "seat_holds_seat_hold_id_seq",
-	allocationSize = 1
-)
 class SeatHold private constructor(
 	@Id
-	@GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "seat_hold_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val seatHoldId: Long? = null,
 	@Column(name = "seat_hold_uuid", nullable = false, unique = true)
 	val seatHoldUuid: String,

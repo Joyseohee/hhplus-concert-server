@@ -1,24 +1,13 @@
 package kr.hhplus.be.server.domain.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.SequenceGenerator
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import kr.hhplus.be.server.infrastructure.persistence.jpa.BaseEntity
 
 @Entity
 @Table(name = "seats")
-@SequenceGenerator(
-	name = "seat_seq",
-	sequenceName = "seat_id_seq",
-	allocationSize = 1
-)
 class Seat private constructor(
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seat_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val seatId: Long? = null,
 	@Column(name = "seat_number", nullable = false)
 	val seatNumber: Int,

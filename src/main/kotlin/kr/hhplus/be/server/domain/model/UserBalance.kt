@@ -1,23 +1,13 @@
 package kr.hhplus.be.server.domain.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
-import jakarta.persistence.SequenceGenerator
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import kr.hhplus.be.server.infrastructure.persistence.jpa.BaseEntity
 
 @Entity
 @Table(name = "users")
-@SequenceGenerator(
-	name = "user_balance_seq",
-	sequenceName = "users_user_balance_id_seq",
-	allocationSize = 1
-)
 class UserBalance private constructor(
 	@Id
-	@GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "user_balance_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val userId: Long?,
 	@Column(name = "balance", nullable = false)
 	val balance: Long,
