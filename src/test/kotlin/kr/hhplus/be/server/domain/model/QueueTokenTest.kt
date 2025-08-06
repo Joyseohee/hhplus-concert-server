@@ -20,9 +20,9 @@ class QueueTokenTest : FreeSpec({
 			)
 
 			listOf(0, 1).forEach { number ->
-				val activatedToken = token.activate(MAX_ACTIVE_COUNT - number)
-				activatedToken.status shouldBe QueueToken.Status.ACTIVE
-				activatedToken.expiresAt shouldBeGreaterThanOrEqualTo now.plus(QueueToken.HOLD_TTL, ChronoUnit.MINUTES)
+				token.activate(MAX_ACTIVE_COUNT - number)
+				token.status shouldBe QueueToken.Status.ACTIVE
+				token.expiresAt shouldBeGreaterThanOrEqualTo now.plus(QueueToken.HOLD_TTL, ChronoUnit.MINUTES)
 			}
 		}
 
@@ -75,8 +75,8 @@ class QueueTokenTest : FreeSpec({
 			)
 
 			listOf(timeExpiredToken, statusExpiredToken).forEach { token ->
-				val expiredToken = token.expire()
-				expiredToken.status shouldBe QueueToken.Status.EXPIRED
+				token.expire()
+				token.status shouldBe QueueToken.Status.EXPIRED
 			}
 		}
 
@@ -88,9 +88,9 @@ class QueueTokenTest : FreeSpec({
 				status = QueueToken.Status.WAITING
 			)
 
-			val nonExpiredToken = couldNotExpiredToken.expire()
-			nonExpiredToken.status shouldBe QueueToken.Status.WAITING
-			nonExpiredToken.expiresAt shouldBeGreaterThanOrEqualTo now
+			couldNotExpiredToken.expire()
+			couldNotExpiredToken.status shouldBe QueueToken.Status.WAITING
+			couldNotExpiredToken.expiresAt shouldBeGreaterThanOrEqualTo now
 		}
 	}
 })

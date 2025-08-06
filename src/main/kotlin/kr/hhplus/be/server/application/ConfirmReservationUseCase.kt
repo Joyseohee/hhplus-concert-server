@@ -31,10 +31,6 @@ class ConfirmReservationUseCase(
 		val userBalance = userBalanceRepository.findById(userId)
 			?: throw IllegalArgumentException("사용자 잔액을 찾을 수 없습니다. 사용자 ID: $userId")
 
-		userBalanceRepository.save(
-			userBalance.use(seat.price)
-		)
-
 		val reservation = Reservation.reserve(
 			reservationUuid = input.reservationUuid,
 			userId = userId,
@@ -47,13 +43,19 @@ class ConfirmReservationUseCase(
 		// 예약 확정
 		val confirmedReservation = reservationRepository.save(reservation)
 
+		// 잔액 차감
+		userBalance.use(seat.price)
+
+		//region - 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다.
 		// 좌석 점유 만료
 		seatHoldRepository.deleteById(seatHold)
 
 		// 토큰 만료
 		val queueToken = queueTokenRepository.findByUserId(userId)
 			?: throw IllegalArgumentException("사용자 토큰을 찾을 수 없습니다. 사용자 ID: $userId")
+
 		queueTokenRepository.deleteById(queueToken.tokenId!!)
+		// endregion
 
 		return Output(
 			concertId = confirmedReservation.concertId,

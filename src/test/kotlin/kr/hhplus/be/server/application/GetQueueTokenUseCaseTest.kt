@@ -40,8 +40,8 @@ class GetQueueTokenUseCaseTest(
 				// 준비: Active 토큰 생성/저장
 				val userId = 2L
 				val waiting = QueueToken.create(userId = userId)
-				val active = waiting.activate(position = 1)
-				val saved = queueTokenRepository.save(active)
+				waiting.activate(position = 1)
+				val saved = queueTokenRepository.save(waiting)
 
 				// 실행
 				val output = getQueueTokenUseCase.getToken(saved.token)

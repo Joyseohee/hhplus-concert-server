@@ -59,9 +59,17 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
+      format_sql: true # SQL 예쁘게 출력
+      use_sql_comments: true # SQL 주석 출력
+      type:
+        # 실제 바인딩된 파라미터까지 로그에 출력
+        descriptor:
+          sql: trace
     show-sql: true
 
 logging:
   level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace # Hibernate 6 이상
     com.zaxxer.hikari: DEBUG
     com.p6spy: DEBUG

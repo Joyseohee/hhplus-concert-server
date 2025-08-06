@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.repository.UserBalanceRepository
 import org.springframework.stereotype.Service
 
@@ -8,16 +9,15 @@ import org.springframework.stereotype.Service
 class ChargeBalanceUseCase(
     private val userBalanceRepository: UserBalanceRepository
 ) {
+    @Transactional
     fun chargeBalance(userId: Long, input: Input): Output {
         val userBalance = userBalanceRepository.findById(userId)
             ?: throw IllegalArgumentException("사용자가 존재하지 않습니다. 사용자 ID: $userId")
 
-        val chargedUserBalance = userBalanceRepository.save(
-            userBalance = userBalance.charge(input.amount)
-        )
+        userBalance.charge(input.amount)
 
         return Output(
-            balance = chargedUserBalance.balance
+            balance = userBalance.balance
         )
     }
 

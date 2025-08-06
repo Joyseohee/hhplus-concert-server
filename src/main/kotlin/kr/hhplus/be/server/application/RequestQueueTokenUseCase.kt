@@ -15,9 +15,9 @@ class RequestQueueTokenUseCase(
 
 		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
 
-		val activatedIfPossibleToken = newToken.activate(activeCount + 1)
+		newToken.activate(activeCount + 1)
 
-		val token = queueTokenRepository.save(activatedIfPossibleToken)
+		val token = queueTokenRepository.save(newToken)
 
 		val position = queueTokenRepository.findPositionById(token.tokenId!!)
 
