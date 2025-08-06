@@ -10,7 +10,7 @@ class UserBalance private constructor(
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val userId: Long?,
 	@Column(name = "balance", nullable = false)
-	val balance: Long,
+	var balance: Long = 0L
 ) : BaseEntity() {
 
 	init {
@@ -44,21 +44,14 @@ class UserBalance private constructor(
 	}
 
 	// balance 충전
-	fun charge(amount: Long): UserBalance {
+	fun charge(amount: Long) {
 		validateChargePolicy(amount)
-		return copy(balance = balance + amount)
+		balance = balance + amount
 	}
 
 	// balance 사용
-	fun use(amount: Long): UserBalance {
+	fun use(amount: Long) {
 		validateUsePolicy(amount)
-		return copy(balance = balance - amount)
-	}
-
-	private fun copy(
-		userId: Long? = this.userId,
-		balance: Long = this.balance
-	): UserBalance {
-		return UserBalance(userId, balance)
+		balance = balance - amount
 	}
 }

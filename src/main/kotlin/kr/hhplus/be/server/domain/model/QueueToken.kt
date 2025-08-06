@@ -17,10 +17,10 @@ class QueueToken private constructor(
 	@Column(name = "token", nullable = false, unique = true)
 	val token: String,
 	@Column(name = "expires_at", nullable = false)
-	val expiresAt: Instant,
+	var expiresAt: Instant,
 	@Column(name = "status", nullable = false)
 	@Enumerated(EnumType.STRING)
-	val status: Status,
+	var status: Status,
 ) : BaseEntity() {
 	enum class Status {
 		WAITING, ACTIVE, EXPIRED
@@ -46,22 +46,21 @@ class QueueToken private constructor(
 		return expiresAt.isAfter(Instant.now()) && status != Status.EXPIRED
 	}
 
-	fun expire(): QueueToken {
+	fun expire() {
 		if (expiresAt.isBefore(Instant.now()) || status == Status.EXPIRED) {
-			return this.copy(status = Status.EXPIRED)
+			status = Status.EXPIRED
 		}
-		return this
 	}
 
-	fun activate(position: Int): QueueToken {
+	fun activate(position: Int) {
 		if (!isValid()) {
 			throw IllegalArgumentException("Token is expired or invalid")
 		}
 
 		if (position <= MAX_ACTIVE_COUNT) {
-			return this.copy(status = Status.ACTIVE, expiresAt = Instant.now().plus(HOLD_TTL, ChronoUnit.MINUTES))
+			status = Status.ACTIVE
+			expiresAt = Instant.now().plus(HOLD_TTL, ChronoUnit.MINUTES)
 		}
-		return this
 	}
 
 	fun copy(

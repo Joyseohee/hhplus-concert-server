@@ -32,13 +32,4 @@ class Concert private constructor(
 	fun isAvailable(): Boolean {
 		return showDateTime.isAfter(Instant.now())
 	}
-
-	private fun copy(
-		concertId: Long? = this.concertId,
-		title: String = this.title,
-		venue: String = this.venue,
-		showDateTime: Instant = this.showDateTime
-	): Concert {
-		return Concert(concertId, title, venue, showDateTime)
-	}
 }
