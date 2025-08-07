@@ -18,10 +18,10 @@ class ValidateQueueTokenServiceTest(
 
 	val INITIAL_BALANCE = 50_000L
 
-	afterEach {
-		userBalanceRepository.clear()
-		queueTokenRepository.clear()
-	}
+    beforeEach {
+        userBalanceRepository.clear()
+        queueTokenRepository.clear()
+    }
 
 	given("유효한 토큰이 주어졌을 때") {
 		`when`("validateToken을 호출하면") {
@@ -80,4 +80,6 @@ class ValidateQueueTokenServiceTest(
 			}
 		}
 	}
+                val savedToken = queueTokenRepository.save(
+                    QueueToken.create(
 })

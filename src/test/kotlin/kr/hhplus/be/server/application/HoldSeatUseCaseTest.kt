@@ -23,7 +23,7 @@ class HoldSeatUseCaseTest(
 	val SEAT_NUMBER = 5
 	val PRICE = 20_000L
 
-	afterEach {
+	beforeEach {
 		reservationRepository.clear()
 		seatHoldRepository.clear()
 		seatRepository.clear()

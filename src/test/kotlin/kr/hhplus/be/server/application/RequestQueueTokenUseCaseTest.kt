@@ -13,7 +13,7 @@ class RequestQueueTokenUseCaseTest(
 	private val queueTokenRepository: QueueTokenRepository
 ) : KotestIntegrationSpec({
 
-	afterEach {
+	beforeEach {
 		queueTokenRepository.clear()
 	}
 

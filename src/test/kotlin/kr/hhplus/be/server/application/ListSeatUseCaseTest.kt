@@ -24,7 +24,7 @@ class ListSeatUseCaseTest(
 ) : KotestIntegrationSpec({
 
 
-	afterEach {
+	beforeEach {
 		reservationRepository.clear()
 		seatHoldRepository.clear()
 		seatRepository.clear()

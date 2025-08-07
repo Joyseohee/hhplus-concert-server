@@ -14,7 +14,7 @@ class ChargeBalanceUseCaseTest(
 	val INITIAL_BALANCE = 10_000L
 	val CHARGE_AMOUNT = 5_000L
 
-	afterEach {
+	beforeEach {
 		userBalanceRepository.clear()
 	}
 

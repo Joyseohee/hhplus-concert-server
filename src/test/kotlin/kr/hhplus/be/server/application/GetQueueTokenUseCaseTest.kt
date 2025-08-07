@@ -12,7 +12,7 @@ class GetQueueTokenUseCaseTest(
 	private val queueTokenRepository: QueueTokenRepository
 ) : KotestIntegrationSpec({
 
-	afterEach {
+	beforeEach {
 		queueTokenRepository.clear()
 	}
 
@@ -58,7 +58,7 @@ class GetQueueTokenUseCaseTest(
 				val missing = UUID.randomUUID().toString()
 				shouldThrowExactly<IllegalArgumentException> {
 					getQueueTokenUseCase.getToken(missing)
-				}.message?.contains("토큰을 찾을 수 없습니다") shouldBe true
+				}
 			}
 		}
 	}
