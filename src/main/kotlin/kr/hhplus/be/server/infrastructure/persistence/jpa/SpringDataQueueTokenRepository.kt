@@ -16,6 +16,14 @@ interface SpringDataQueueTokenRepository : JpaRepository<QueueToken, Long> {
 		now: Instant
 	): QueueToken?
 
+	fun findByTokenAndStatusAndExpiresAtAfter(
+		token: String,
+		status: QueueToken.Status,
+		now: Instant
+	): QueueToken?
+
+	fun findAllByOrderByCreatedAtAsc(): List<QueueToken>
+
 	@Query("SELECT q FROM QueueToken q WHERE q.status = :status AND q.expiresAt > :expiresAt ORDER BY q.createdAt ASC")
 	fun findAllByStatusAndExpiresAtAfterOrderByCreatedAt(
 		status: QueueToken.Status,

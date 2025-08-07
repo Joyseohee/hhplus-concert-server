@@ -6,9 +6,17 @@ interface QueueTokenRepository {
 
 	fun findByUserId(userId: Long): QueueToken?
 
+	fun findByToken(token: String): QueueToken?
+
 	fun findValidatedByToken(token: String): QueueToken?
 
+	fun findActiveByToken(token: String): QueueToken?
+
 	fun findAllWaitingTokenForActivate(i: Int): List<QueueToken>
+
+	fun findAllActivated(): List<QueueToken>
+
+	fun findAll(): List<QueueToken>
 
 	fun findPositionById(id: Long): Int?
 

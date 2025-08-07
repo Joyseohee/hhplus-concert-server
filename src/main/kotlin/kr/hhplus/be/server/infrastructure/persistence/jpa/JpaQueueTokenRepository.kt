@@ -16,16 +16,42 @@ class JpaQueueTokenRepository(
 		return repository.findByUserIdAndStatusNot(userId, QueueToken.Status.EXPIRED)
 	}
 
+	override fun findByToken(token: String): QueueToken? {
+		return repository.findByTokenAndStatusNotAndExpiresAtAfter(
+			token,
+			QueueToken.Status.EXPIRED,
+			Instant.now()
+		)
+	}
+
 	override fun findValidatedByToken(token: String): QueueToken? {
 		return repository.findByTokenAndStatusNotAndExpiresAtAfter(token, QueueToken.Status.EXPIRED, Instant.now())
+	}
+
+	override fun findActiveByToken(token: String): QueueToken? {
+		return repository.findByTokenAndStatusAndExpiresAtAfter(
+			token,
+			QueueToken.Status.ACTIVE,
+			Instant.now()
+		)
 	}
 
 	override fun findAllWaitingTokenForActivate(i: Int): List<QueueToken> {
 		return repository.findAllByStatusAndExpiresAtAfterOrderByCreatedAt(
 			QueueToken.Status.WAITING,
 			Instant.now(),
-			PageRequest.of(0, i)
 		)
+	}
+
+	override fun findAllActivated(): List<QueueToken> {
+		return repository.findAllByStatusAndExpiresAtAfterOrderByCreatedAt(
+			QueueToken.Status.ACTIVE,
+			Instant.now(),
+		)
+	}
+
+	override fun findAll(): List<QueueToken> {
+		return repository.findAllByOrderByCreatedAtAsc()
 	}
 
 	override fun findPositionById(id: Long): Int? {
