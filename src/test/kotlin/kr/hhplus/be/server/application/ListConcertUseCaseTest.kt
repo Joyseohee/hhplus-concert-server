@@ -17,7 +17,7 @@ class ListConcertUseCaseTest(
 	val TITLE_PREFIX = "HH+ Concert"
 
 	// 매 테스트 전 DB 초기화
-	afterEach {
+	beforeEach {
 		concertRepository.clear()
 	}
 

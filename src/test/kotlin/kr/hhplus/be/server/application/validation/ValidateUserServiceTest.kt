@@ -11,7 +11,8 @@ class ValidateUserServiceTest(
 	private val userBalanceRepository: UserBalanceRepository
 ) : KotestIntegrationSpec({
 	val INITIAL_BALANCE = 20_000L
-	afterEach {
+
+	beforeEach {
 		userBalanceRepository.clear()
 	}
 
