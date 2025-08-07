@@ -1,12 +1,17 @@
 package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.Reservation
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
 import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import kr.hhplus.be.server.domain.repository.SeatRepository
 import kr.hhplus.be.server.domain.repository.UserBalanceRepository
+import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Recover
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -18,6 +23,13 @@ class ConfirmReservationUseCase(
 	private val userBalanceRepository: UserBalanceRepository,
 	private val queueTokenRepository: QueueTokenRepository,
 ) {
+
+	@Retryable(
+		value = [ObjectOptimisticLockingFailureException::class],
+		maxAttempts = 3,
+		backoff = Backoff(delay = 200, multiplier = 2.0) // 100ms 간격으로 재시도
+	)
+	@Transactional
 	fun confirmReservation(
 		userId: Long,
 		input: Input
@@ -43,6 +55,8 @@ class ConfirmReservationUseCase(
 		// 예약 확정
 		val confirmedReservation = reservationRepository.save(reservation)
 
+		println("예약 확정: 사용자 ID = $userId, 예약 UUID = ${input.reservationUuid}, 좌석 ID = ${input.seatId}, 가격 = ${seat.price}")
+
 		// 잔액 차감
 		userBalance.use(seat.price)
 
@@ -62,6 +76,12 @@ class ConfirmReservationUseCase(
 			seatId = confirmedReservation.seatId,
 			price = confirmedReservation.price
 		)
+	}
+
+	@Recover
+	fun recover(e: ObjectOptimisticLockingFailureException, userId: Long, input: ChargeBalanceUseCase.Input): ChargeBalanceUseCase.Output {
+		println("재시도 실패: 사용자 ID = $userId, 충전액 = ${input.amount}, 에러 = ${e.message}")
+		throw RuntimeException("좌석 예약에 실패했습니다. 나중에 다시 시도해주세요.")
 	}
 
 	@Schema(name = "ConfirmReservationRequest", description = "예약 확정 요청")

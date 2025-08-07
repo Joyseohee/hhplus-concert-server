@@ -70,6 +70,10 @@ class ConfirmReservationUseCaseTest(
 				seatHoldRepository.findValidSeatHoldBySeatId(userId = user.userId, seatId = seat.seatId) shouldBe null
 
 				queueTokenRepository.findByUserId(user.userId) shouldBe null
+
+				userBalanceRepository.findById(user.userId)?.let {
+					it.balance shouldBe (1000L)
+				} ?: throw IllegalStateException("User balance not found")
 			}
 		}
 	}
