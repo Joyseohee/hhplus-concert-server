@@ -5,12 +5,12 @@ import kr.hhplus.be.server.domain.repository.UserBalanceRepository
 import org.springframework.stereotype.Service
 
 @Service
-class ValidateQueueTokenService (
+class ValidateQueueTokenService(
 	private val queueTokenRepository: QueueTokenRepository,
 	private val userBalanceRepository: UserBalanceRepository
 ) {
 	fun validateToken(token: String): Long {
-		val token = queueTokenRepository.findValidatedByToken(token)
+		val token = queueTokenRepository.findActiveByToken(token)
 			?: throw IllegalArgumentException("토큰을 찾을 수 없습니다: $token")
 
 		val user = userBalanceRepository.findById(token.userId)

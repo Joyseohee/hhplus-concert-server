@@ -7,6 +7,8 @@ interface ReservationRepository {
 
 	fun findAllBySeatId(seatIds: List<Long>): List<Reservation> = emptyList()
 
+	fun count(): Long
+
 	fun save(reservation: Reservation): Reservation
 
 	fun clear()

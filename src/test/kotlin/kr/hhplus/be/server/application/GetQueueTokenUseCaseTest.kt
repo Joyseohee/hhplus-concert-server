@@ -17,12 +17,11 @@ class GetQueueTokenUseCaseTest(
 	}
 
 	given("토큰 조회 요청이 들어올 때") {
-
 		`when`("대기(Waiting) 상태의 토큰이 존재하면") {
 			then("status=WAITING, position=1, expiresAt이 반환된다") {
 				// 준비: Waiting 토큰 저장
 				val userId = 1L
-				val waiting = QueueToken.create(userId = userId)
+				val waiting = QueueToken.create(userId = userId, status = QueueToken.Status.WAITING)
 				val saved = queueTokenRepository.save(waiting)
 
 				// 실행
@@ -39,7 +38,7 @@ class GetQueueTokenUseCaseTest(
 			then("status=ACTIVE, position=1, expiresAt이 반환된다") {
 				// 준비: Active 토큰 생성/저장
 				val userId = 2L
-				val waiting = QueueToken.create(userId = userId)
+				val waiting = QueueToken.create(userId = userId, status = QueueToken.Status.ACTIVE)
 				waiting.activate(position = 1)
 				val saved = queueTokenRepository.save(waiting)
 
