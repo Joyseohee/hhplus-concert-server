@@ -93,17 +93,18 @@ class ConfirmReservationUseCaseTest(
                     QueueToken.create(userId = user.userId!!, status = QueueToken.Status.ACTIVE)
                 )
 
-				shouldThrowExactly<IllegalArgumentException> {
-					confirmReservationUseCase.confirmReservation(
-						user.userId,
-						ConfirmReservationUseCase.Input(
-							reservationUuid = UUID.randomUUID().toString(),
-							seatId = seat.seatId!!
-						)
-					)
-				}
-			}
-		}
+                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                    confirmReservationUseCase.confirmReservation(
+                        user.userId,
+                        ConfirmReservationUseCase.Input(
+                            reservationUuid = UUID.randomUUID().toString(),
+                            seatId = seat.seatId!!
+                        )
+                    )
+                }
+                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
+            }
+        }
 
         `when`("seatHold는 존재하나 seatRepository에 없으면") {
             then("예외가 발생한다") {
@@ -122,18 +123,19 @@ class ConfirmReservationUseCaseTest(
                     QueueToken.create(userId = user.userId, status = QueueToken.Status.ACTIVE)
                 )
 
-				shouldThrowExactly<IllegalArgumentException> {
-					confirmReservationUseCase.confirmReservation(
-						user.userId,
-						ConfirmReservationUseCase.Input(
-							reservationUuid = UUID.randomUUID().toString(),
-							seatId = seatHold.seatId
-						)
-					)
-				}
-			}
-		}
-	}
+                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                    confirmReservationUseCase.confirmReservation(
+                        user.userId,
+                        ConfirmReservationUseCase.Input(
+                            reservationUuid = UUID.randomUUID().toString(),
+                            seatId = seatHold.seatId
+                        )
+                    )
+                }
+                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
+            }
+        }
+    }
 
     given("사용자 정보나 토큰이 없을 때") {
         `when`("userBalance가 없으면") {
@@ -150,17 +152,19 @@ class ConfirmReservationUseCaseTest(
                     )
                 )
 
-				shouldThrowExactly<IllegalArgumentException> {
-					confirmReservationUseCase.confirmReservation(
-						999L,
-						ConfirmReservationUseCase.Input(
-							reservationUuid = UUID.randomUUID().toString(),
-							seatId = seat.seatId
-						)
-					)
-				}
-			}
-		}
+                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                    confirmReservationUseCase.confirmReservation(
+                        999L,
+                        ConfirmReservationUseCase.Input(
+                            reservationUuid = UUID.randomUUID().toString(),
+                            seatId = seat.seatId
+                        )
+                    )
+                }
+
+                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
+            }
+        }
 
         `when`("QueueToken이 없으면") {
             then("예외가 발생한다") {
@@ -179,16 +183,19 @@ class ConfirmReservationUseCaseTest(
                     )
                 )
 
-				shouldThrowExactly<IllegalArgumentException> {
-					confirmReservationUseCase.confirmReservation(
-						user.userId,
-						ConfirmReservationUseCase.Input(
-							reservationUuid = UUID.randomUUID().toString(),
-							seatId = seat.seatId!!
-						)
-					)
-				}
-			}
-		}
-	}
+                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                    confirmReservationUseCase.confirmReservation(
+                        user.userId,
+                        ConfirmReservationUseCase.Input(
+                            reservationUuid = UUID.randomUUID().toString(),
+                            seatId = seat.seatId!!
+                        )
+                    )
+                }
+                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
+            }
+        }
+    }
+
+
 })

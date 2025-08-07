@@ -2,9 +2,12 @@ package kr.hhplus.be.server.application
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.domain.model.UserBalance
 import kr.hhplus.be.server.domain.repository.UserBalanceRepository
+import org.springframework.retry.ExhaustedRetryException
 
 class ChargeBalanceUseCaseTest(
 	private val chargeBalanceUseCase: ChargeBalanceUseCase,
@@ -45,9 +48,10 @@ class ChargeBalanceUseCaseTest(
 				val badUserId = 999L
 				val input = ChargeBalanceUseCase.Input(amount = CHARGE_AMOUNT)
 
-				shouldThrowExactly<IllegalArgumentException> {
+				val exception = shouldThrowExactly<ExhaustedRetryException> {
 					chargeBalanceUseCase.chargeBalance(badUserId, input)
-				}.message shouldBe "사용자가 존재하지 않습니다. 사용자 ID: $badUserId"
+				}
+				exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
 			}
 		}
 	}
@@ -61,12 +65,15 @@ class ChargeBalanceUseCaseTest(
 				val inputZero = ChargeBalanceUseCase.Input(amount = 0L)
 				val inputNegative = ChargeBalanceUseCase.Input(amount = -100L)
 
-				shouldThrowExactly<IllegalArgumentException> {
+				val exception1 = shouldThrowExactly<ExhaustedRetryException> {
 					chargeBalanceUseCase.chargeBalance(user.userId!!, inputZero)
 				}
-				shouldThrowExactly<IllegalArgumentException> {
+				exception1.cause.shouldBeInstanceOf<IllegalArgumentException>()
+
+				val exception2 = shouldThrowExactly<ExhaustedRetryException> {
 					chargeBalanceUseCase.chargeBalance(user.userId!!, inputNegative)
 				}
+				exception2.cause.shouldBeInstanceOf<IllegalArgumentException>()
 			}
 		}
 	}
