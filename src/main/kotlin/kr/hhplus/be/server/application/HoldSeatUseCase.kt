@@ -29,7 +29,6 @@ class HoldSeatUseCase(
 			seatId = seat.seatId!!
 		)
 
-		// todo - 동시성 문제 발생 가능 지점 : 좌석 + 콘서트에 unique constraint 필요, 점유 만료 후 delete 처리 필요
 		val confirmedSeatHold = seatHoldRepository.save(newSeatHold)
 
 		return Output(
