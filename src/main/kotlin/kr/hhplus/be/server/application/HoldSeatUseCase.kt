@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
@@ -15,6 +16,7 @@ class HoldSeatUseCase(
 	private val reservationRepository: ReservationRepository,
 ) {
 
+	@Transactional
 	fun holdSeat(input: Input, userId: Long): Output {
 		val seat = seatRepository.findById(input.seatId)
 			?: throw IllegalArgumentException("존재하지 않는 좌석입니다. 좌석 ID: ${input.seatId}")

@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.schedule
 
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.model.QueueToken.Companion.MAX_ACTIVE_COUNT
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
@@ -18,6 +19,7 @@ class ExpireStatusScheduler(
 
 	// 1분마다 만료 상태 갱신
 	@Scheduled(fixedDelay = 60_000)
+	@Transactional
 	fun expireStatuses() {
 		log.info("스케줄러 실행 시점 :: ${Instant.now()}")
 		// QueueToken 만료 처리
