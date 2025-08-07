@@ -54,21 +54,25 @@ class ConfirmReservationUseCase(
 
 		// 예약 확정
 		val confirmedReservation = reservationRepository.save(reservation)
-
 		println("예약 확정: 사용자 ID = $userId, 예약 UUID = ${input.reservationUuid}, 좌석 ID = ${input.seatId}, 가격 = ${seat.price}")
 
 		// 잔액 차감
 		userBalance.use(seat.price)
+		println("잔액 차감: 사용자 ID = $userId, 좌석 ID = ${seat.seatId}, 차감 금액 = ${seat.price}, 잔액 = ${userBalance.balance}")
 
 		//region - 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다.
 		// 좌석 점유 만료
 		seatHoldRepository.deleteById(seatHold)
+		println("좌석 점유 만료: 사용자 ID = $userId, 좌석 ID = ${input.seatId}, 예약 UUID = ${input.reservationUuid}")
 
 		// 토큰 만료
 		val queueToken = queueTokenRepository.findByUserId(userId)
 			?: throw IllegalArgumentException("사용자 토큰을 찾을 수 없습니다. 사용자 ID: $userId")
 
+		println("토큰 확인: 사용자 ID = $userId, 토큰 ID = ${queueToken.tokenId}, 만료 시간 = ${queueToken.expiresAt}")
+
 		queueTokenRepository.deleteById(queueToken.tokenId!!)
+		println("토큰 만료: 사용자 ID = $userId, 토큰 ID = ${queueToken.tokenId}, 만료 시간 = ${queueToken.expiresAt}")
 		// endregion
 
 		return Output(
