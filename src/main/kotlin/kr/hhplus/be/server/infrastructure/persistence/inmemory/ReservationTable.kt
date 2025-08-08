@@ -17,6 +17,10 @@ class ReservationTable : ReservationRepository {
 		return table.values.filter { it.seatId in seatIds }
 	}
 
+	override fun count(): Long {
+		return table.size.toLong()
+	}
+
 	override fun save(
 		reservation: Reservation
 	): Reservation {

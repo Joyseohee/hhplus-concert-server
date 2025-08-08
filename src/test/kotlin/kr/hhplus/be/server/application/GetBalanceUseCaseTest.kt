@@ -10,7 +10,8 @@ class GetBalanceUseCaseTest(
 	private val getBalanceUseCase: GetBalanceUseCase,
 	private val userBalanceRepository: UserBalanceRepository
 ) : KotestIntegrationSpec({
-	afterEach {
+
+	beforeEach {
 		userBalanceRepository.clear()
 	}
 

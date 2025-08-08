@@ -13,14 +13,15 @@ class RequestQueueTokenUseCaseTest(
 	private val queueTokenRepository: QueueTokenRepository
 ) : KotestIntegrationSpec({
 
-	afterEach {
+	beforeEach {
 		queueTokenRepository.clear()
 	}
 
 	given("새 토큰 발급을 요청할 때") {
 		`when`("현재 활성 토큰 수가 49개 미만인 경우") {
 			then("토큰이 ACTIVE 상태로 발급되어 저장된다") {
-				repeat(10) {
+				val times = MAX_ACTIVE_COUNT - 1
+				repeat(times) {
 					queueTokenRepository.save(
 						QueueToken.create(userId = it.toLong(), status = QueueToken.Status.ACTIVE)
 					)

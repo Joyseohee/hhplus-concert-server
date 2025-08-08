@@ -16,18 +16,43 @@ class QueueTokenTable : QueueTokenRepository {
 			.find { it.userId == userId && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
+	override fun findByToken(token: String): QueueToken? {
+		return table.values
+			.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
+	}
+
 	override fun findValidatedByToken(token: String): QueueToken? {
 		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
 			.find { it.token == token && it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
 	}
 
+	override fun findActiveByToken(token: String): QueueToken? {
+		return table.values
+			.find { it.token == token && it.status == QueueToken.Status.ACTIVE && it.expiresAt.isAfter(Instant.now()) }
+	}
+
 	override fun findAllWaitingTokenForActivate(i: Int): List<QueueToken> {
+		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
 			.filter { it.status == QueueToken.Status.WAITING }
 			.sortedBy { it.createdAt }
 			.take(i)
 			.map { it.copy(status = QueueToken.Status.ACTIVE) }
+			.toList()
+	}
+
+	override fun findAllActivated(): List<QueueToken> {
+		Thread.sleep(Math.random().toLong() * 200L)
+		return table.values
+			.filter { it.status != QueueToken.Status.EXPIRED && it.expiresAt.isAfter(Instant.now()) }
+			.sortedBy { it.createdAt }
+			.toList()
+	}
+
+	override fun findAll(): List<QueueToken> {
+		return table.values
+			.sortedBy { it.createdAt }
 			.toList()
 	}
 
@@ -46,6 +71,7 @@ class QueueTokenTable : QueueTokenRepository {
 	}
 
 	override fun findTokensToExpire(): List<QueueToken> {
+		Thread.sleep(Math.random().toLong() * 200L)
 		return table.values
 			.filter { it.expiresAt.isBefore(Instant.now()) && it.status != QueueToken.Status.EXPIRED }
 			.sortedBy { it.expiresAt }
@@ -70,6 +96,7 @@ class QueueTokenTable : QueueTokenRepository {
 	}
 
 	override fun saveAll(queueTokens: List<QueueToken>): List<QueueToken> {
+		Thread.sleep(Math.random().toLong() * 200L)
 		return queueTokens.map { save(it) }
 	}
 
