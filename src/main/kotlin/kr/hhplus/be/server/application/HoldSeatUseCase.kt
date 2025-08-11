@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
@@ -15,6 +16,7 @@ class HoldSeatUseCase(
 	private val reservationRepository: ReservationRepository,
 ) {
 
+	@Transactional
 	fun holdSeat(input: Input, userId: Long): Output {
 		val seat = seatRepository.findById(input.seatId)
 			?: throw IllegalArgumentException("존재하지 않는 좌석입니다. 좌석 ID: ${input.seatId}")
@@ -29,7 +31,6 @@ class HoldSeatUseCase(
 			seatId = seat.seatId!!
 		)
 
-		// todo - 동시성 문제 발생 가능 지점 : 좌석 + 콘서트에 unique constraint 필요, 점유 만료 후 delete 처리 필요
 		val confirmedSeatHold = seatHoldRepository.save(newSeatHold)
 
 		return Output(

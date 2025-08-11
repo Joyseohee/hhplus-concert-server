@@ -18,11 +18,15 @@ class JpaReservationRepository(
 		return repository.findAllBySeatIdIn(seatIds)
 	}
 
+	override fun count(): Long {
+		return repository.count()
+	}
+
 	override fun save(reservation: Reservation): Reservation {
 		return repository.save(reservation)
 	}
 
-	override  fun clear() {
+	override fun clear() {
 		repository.deleteAll()
 	}
 

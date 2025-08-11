@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
 import org.springframework.stereotype.Service
@@ -10,13 +11,12 @@ import java.time.Instant
 class RequestQueueTokenUseCase(
 	private val queueTokenRepository: QueueTokenRepository
 ) {
+	@Transactional
 	fun createToken(userId: Long): Output {
+		val activeCount = queueTokenRepository.findAllActivated().size
+
 		val newToken = QueueToken.create(userId = userId)
-
-		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
-
 		newToken.activate(activeCount + 1)
-
 		val token = queueTokenRepository.save(newToken)
 
 		val position = queueTokenRepository.findPositionById(token.tokenId!!)
