@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.concurrency
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
