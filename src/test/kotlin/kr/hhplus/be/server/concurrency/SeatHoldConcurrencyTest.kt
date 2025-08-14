@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.concurrency
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
@@ -8,7 +9,6 @@ import kr.hhplus.be.server.application.schedule.ExpireStatusScheduler
 import kr.hhplus.be.server.domain.model.*
 import kr.hhplus.be.server.domain.repository.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.retry.ExhaustedRetryException
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -154,8 +154,8 @@ class SeatHoldConcurrencyTest @Autowired constructor(
 				latch.await()
 
 				// 스케줄러 스레드는 예외 없이 끝나야 하고, 예약 스레드는 최소 1개 이상 예외가 발생해야 함
-				val reservationExceptions = results.filterIsInstance<ExhaustedRetryException>()
-				reservationExceptions.any { it.cause is IllegalArgumentException } shouldBe true
+				val reservationExceptions = results.filterIsInstance<IllegalArgumentException>()
+				reservationExceptions.size shouldNotBe 0
 			}
 		}
 	}
