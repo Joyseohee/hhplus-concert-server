@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.Reservation
 import kr.hhplus.be.server.domain.repository.*
-import org.springframework.orm.ObjectOptimisticLockingFailureException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Recover
-import org.springframework.retry.annotation.Retryable
+import kr.hhplus.be.server.support.annotation.RedisLock
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -20,10 +17,9 @@ class ConfirmReservationUseCase(
 	private val queueTokenRepository: QueueTokenRepository,
 ) {
 
-	@Retryable(
-		value = [ObjectOptimisticLockingFailureException::class],
-		maxAttempts = 3,
-		backoff = Backoff(delay = 200, multiplier = 2.0)
+	@RedisLock(
+		key = "'lock:balance:{' + #userId + '}'",
+		waitTimeMs = 1000, leaseTimeMs = 2000, failFast = false
 	)
 	@Transactional
 	fun confirmReservation(
@@ -67,11 +63,6 @@ class ConfirmReservationUseCase(
 			seatId = confirmedReservation.seatId,
 			price = confirmedReservation.price
 		)
-	}
-
-	@Recover
-	fun recover(e: ObjectOptimisticLockingFailureException, userId: Long, input: ChargeBalanceUseCase.Input): ChargeBalanceUseCase.Output {
-		throw RuntimeException("좌석 예약에 실패했습니다. 나중에 다시 시도해주세요.")
 	}
 
 	@Schema(name = "ConfirmReservationRequest", description = "예약 확정 요청")
