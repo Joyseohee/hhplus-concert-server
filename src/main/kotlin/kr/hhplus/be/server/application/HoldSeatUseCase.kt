@@ -3,9 +3,11 @@ package kr.hhplus.be.server.application
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.SeatHold
+import kr.hhplus.be.server.domain.model.SeatHold.Companion.VALID_HOLD_MINUTE
 import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import kr.hhplus.be.server.domain.repository.SeatRepository
+import kr.hhplus.be.server.support.annotation.RedisLock
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -15,7 +17,10 @@ class HoldSeatUseCase(
 	private val seatHoldRepository: SeatHoldRepository,
 	private val reservationRepository: ReservationRepository,
 ) {
-
+	@RedisLock(
+		key = "'lock:seat:{' + #input.concertId + '}:{' + #input.seatId + '}'",
+		waitTimeMs = 100, leaseTimeMs = 2000, failFast = true
+	)
 	@Transactional
 	fun holdSeat(input: Input, userId: Long): Output {
 		val seat = seatRepository.findById(input.seatId)
