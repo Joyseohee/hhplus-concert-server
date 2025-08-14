@@ -16,6 +16,8 @@
 ### 동시성 문제 보고서
 - [동시성 이슈 : DB Lock 보고서](6_db_race_condition_report.md)
 - [동시성 이슈 : 분산락 보고서](7_redis_distributed_lock_report.md)
+### 캐시 전략 보고서
+- [캐시 전략 보고서](8_redis_cash_report.md)
 
 ## 📄 분산락 적용 보고서 (STEP 11)
 
