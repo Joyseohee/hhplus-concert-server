@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.config
 
+import kr.hhplus.be.server.infrastructure.lock.core.RedisLockManager
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
 import org.redisson.config.Config
@@ -18,10 +19,13 @@ class RedissonConfig(
 
 	@Bean
 	fun redissonClient(): RedissonClient {
-		var redisson: RedissonClient? = null
-		val config: Config = Config()
-		config.useSingleServer().setAddress(REDISSON_HOST_PREFIX + redisHost + ":" + redisPort)
-		redisson = Redisson.create(config)
-		return redisson
+		val cfg = Config()
+		cfg.useSingleServer().address = "${REDISSON_HOST_PREFIX}${redisHost}:${redisPort}"
+		return Redisson.create(cfg)
 	}
+
+
+	@Bean
+	fun redisLockManager(redisson: RedissonClient): RedisLockManager =
+		RedisLockManager(redisson)
 }
