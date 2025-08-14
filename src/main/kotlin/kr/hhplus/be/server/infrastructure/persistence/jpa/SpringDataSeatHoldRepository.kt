@@ -7,9 +7,13 @@ import java.time.Instant
 interface SpringDataSeatHoldRepository : JpaRepository<SeatHold, Long> {
 	fun findBySeatHoldUuid(seatHoldUuid: String): SeatHold?
 
+	fun findByUserIdAndSeatHoldUuid(userId: Long, seatHoldUuid: String): SeatHold?
+
 	fun findByUserIdAndSeatIdAndExpiresAtAfter(userId: Long, seatId: Long, now: Instant): SeatHold?
 
 	fun findAllByConcertIdAndSeatIdInAndExpiresAtAfter(concertId: Long, seatId: List<Long>, now: Instant): List<SeatHold>
 
 	fun findByExpiresAtBefore(now: Instant): List<SeatHold>
+
+	fun findByConcertIdAndSeatIdAndExpiresAtAfter(concertId: Long, seatId: Long, now: Instant): SeatHold?
 }

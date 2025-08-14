@@ -16,7 +16,7 @@ class ChargeBalanceUseCase(
     @Retryable(
         value = [ObjectOptimisticLockingFailureException::class],
         maxAttempts = 3,
-        backoff = Backoff(delay = 200, multiplier = 2.0) // 100ms 간격으로 재시도
+        backoff = Backoff(delay = 200, multiplier = 2.0)
     )
     @Transactional
     fun chargeBalance(userId: Long, input: Input): Output {

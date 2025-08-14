@@ -23,15 +23,15 @@ class ConfirmReservationUseCase(
 	@Retryable(
 		value = [ObjectOptimisticLockingFailureException::class],
 		maxAttempts = 3,
-		backoff = Backoff(delay = 200, multiplier = 2.0) // 100ms 간격으로 재시도
+		backoff = Backoff(delay = 200, multiplier = 2.0)
 	)
 	@Transactional
 	fun confirmReservation(
 		userId: Long,
 		input: Input
 	): Output {
-		val seatHold = seatHoldRepository.findValidSeatHoldBySeatId(userId = userId, seatId = input.seatId)
-			?: throw IllegalArgumentException("유효하지 않는 좌석 점유 요청입니다. 좌석 ID: ${input.seatId}")
+		val seatHold = seatHoldRepository.findByUserIdAndUuid(userId = userId, seatHoldUuid = input.seatHoldUuid)
+			?: throw IllegalArgumentException("유효하지 않는 좌석 점유 요청입니다. 좌석 ID: ${input.seatHoldUuid}")
 
 		val seat = seatRepository.findById(seatHold.seatId)
 			?: throw IllegalArgumentException("존재하지 않는 좌석입니다. 좌석 ID: ${seatHold.seatId}")
@@ -39,23 +39,20 @@ class ConfirmReservationUseCase(
 		val userBalance = userBalanceRepository.findById(userId)
 			?: throw IllegalArgumentException("사용자 잔액을 찾을 수 없습니다. 사용자 ID: $userId")
 
-		val reservation = Reservation.reserve(
+		// 잔액 차감
+		userBalance.use(seat.price)
+
+		// 예약 확정
+		val confirmedReservation = reservationRepository.save(Reservation.reserve(
 			reservationUuid = input.reservationUuid,
 			userId = userId,
 			concertId = seatHold.concertId,
 			seatId = seatHold.seatId,
 			reservedAt = Instant.now(),
 			price = seat.price
-		)
+		))
 
-		// 예약 확정
-		val confirmedReservation = reservationRepository.save(reservation)
-
-		// 잔액 차감
-		userBalance.use(seat.price)
-
-		//region - 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다.
-		// 좌석 점유 만료
+		// region - 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다. 추후 비동기 처리로 변경.
 		seatHoldRepository.deleteById(seatHold)
 
 		// 토큰 만료
@@ -81,8 +78,8 @@ class ConfirmReservationUseCase(
 	data class Input(
 		@Schema(description = "예약 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 		val reservationUuid: String,
-		@Schema(description = "점유 요청 ID", example = "0e02b2c3d479", requiredMode = Schema.RequiredMode.REQUIRED)
-		val seatId: Long,
+		@Schema(description = "점유 요청 UUID", example = "0e02b2c3d479", requiredMode = Schema.RequiredMode.REQUIRED)
+		val seatHoldUuid: String,
 	)
 
 	@Schema(name = "ConfirmReservationResponse", description = "예약 확정 응답")
