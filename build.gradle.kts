@@ -69,6 +69,9 @@ dependencies {
 	// 	Docs
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
+	// 	etc
+	implementation("org.projectlombok:lombok:1.18.28")
+
 }
 
 tasks.withType<Test> {
