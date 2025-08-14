@@ -24,6 +24,15 @@ class HoldSeatUseCase(
 		reservationRepository.findBySeatId(input.seatId)
 			?.let { throw IllegalArgumentException("이미 예약된 좌석입니다. 좌석 ID: ${input.seatId}") }
 
+		val seatHold = seatHoldRepository.findValidSeatHold(
+			concertId = input.concertId,
+			seatId = input.seatId
+		)
+
+		if (seatHold != null) {
+			throw IllegalArgumentException("이미 점유된 좌석입니다. 좌석 ID: ${input.seatId}")
+		}
+
 		val newSeatHold = SeatHold.held(
 			seatHoldUuid = input.seatHoldUuid,
 			userId = userId,
