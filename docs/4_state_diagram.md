@@ -13,7 +13,9 @@
 - [상태 다이어그램](4_state_diagram.md)
 - [API 명세](https://joyseohee.github.io/hhplus-concert-server)
 - [DB 성능 보고서](5_db_report.md)
-- [동시성 문제 보고서](6_db_race_condition_report.md)
+### 동시성 문제 보고서
+- [동시성 이슈 : DB Lock 보고서](6_db_race_condition_report.md)
+- [동시성 이슈 : 분산락 보고서](7_redis_distributed_lock_report.md)
 
 ## 📋 상태 다이어그램
 
