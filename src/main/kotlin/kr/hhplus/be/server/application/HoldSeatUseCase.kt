@@ -19,7 +19,7 @@ class HoldSeatUseCase(
 ) {
 	@RedisLock(
 		key = "'lock:seat:{' + #input.concertId + '}:{' + #input.seatId + '}'",
-		waitTimeMs = 1000, leaseTimeMs = VALID_HOLD_MINUTE * 60 * 1000, failFast = true
+		waitTimeMs = 100, leaseTimeMs = 2000, failFast = true
 	)
 	@Transactional
 	fun holdSeat(input: Input, userId: Long): Output {

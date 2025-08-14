@@ -19,7 +19,7 @@ class ConfirmReservationUseCase(
 
 	@RedisLock(
 		key = "'lock:balance:{' + #userId + '}'",
-		waitTimeMs = 1000, leaseTimeMs = 2000, failFast = false
+		waitTimeMs = 100, leaseTimeMs = 2000, failFast = false
 	)
 	@Transactional
 	fun confirmReservation(
