@@ -102,7 +102,7 @@ class ReservationControllerTest(
 				then("200 OK, SUCCESS 반환") {
 					val req = ConfirmReservationUseCase.Input(
 						reservationUuid = "res-uuid",
-						seatId = 1L
+						seatHoldUuid = "hold-uuid"
 					)
 					every {
 						confirmReservationUseCase.confirmReservation(VALID_USER_ID, req)

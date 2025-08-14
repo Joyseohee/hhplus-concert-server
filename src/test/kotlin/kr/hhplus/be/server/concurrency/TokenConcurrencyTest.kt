@@ -150,15 +150,15 @@ class TokenConcurrencyTest @Autowired constructor(
 				val threadCount = 10
 				val latch = CountDownLatch(threadCount)
 				val executor = Executors.newFixedThreadPool(threadCount)
-				val userTokens = mutableListOf<Triple<Long, String, Long>>() // userId, token, seatId
+				val userTokens = mutableListOf<Triple<Long, String, String>>() // userId, token, seatHoldUuid
 
 				// 여러 유저에게 토큰과 좌석 점유 발급
 				repeat(threadCount) { idx ->
 					val userBalance = userBalanceRepository.save(UserBalance.create(balance = initialBalance))
 					val token = requestQueueTokenUseCase.createToken(userId = userBalance.userId!!)
 					val seat = seatRepository.save(Seat.create(seatNumber = 1, price = 1_000L))
-					seatHoldRepository.save(SeatHold.create(seatHoldUuid = UUID.randomUUID().toString(), userId = userBalance.userId!!, concertId = 1L, seatId = seat.seatId!!))
-					userTokens.add(Triple(userBalance.userId!!, token.token, seat.seatId))
+					val hold = seatHoldRepository.save(SeatHold.create(seatHoldUuid = UUID.randomUUID().toString(), userId = userBalance.userId!!, concertId = 1L, seatId = seat.seatId!!))
+					userTokens.add(Triple(userBalance.userId!!, token.token, hold.seatHoldUuid))
 				}
 
 				// 절반은 스케줄러 만료 대상(expiresAt 과거), 절반은 예약 확정으로 만료
@@ -178,14 +178,14 @@ class TokenConcurrencyTest @Autowired constructor(
 
 				// 예약 확정 만료(동시성 테스트)
 				val results = Collections.synchronizedList(mutableListOf<Boolean>())
-				confirmExpire.forEach { (userId, _, seatId) ->
+				confirmExpire.forEach { (userId, _, seatHoldUuid) ->
 					executor.submit {
 						try {
 							confirmReservationUseCase.confirmReservation(
 								userId = userId,
 								ConfirmReservationUseCase.Input(
 									reservationUuid = UUID.randomUUID().toString(),
-									seatId = seatId
+									seatHoldUuid = seatHoldUuid
 								)
 							)
 							results.add(true)
@@ -197,14 +197,14 @@ class TokenConcurrencyTest @Autowired constructor(
 					}
 				}
 				// 스케줄러 만료 대상도 동시에 예약 확정 시도(실패해야 함)
-				schedulerExpire.forEach { (userId, _, seatId) ->
+				schedulerExpire.forEach { (userId, _, seatHoldUuid) ->
 					executor.submit {
 						try {
 							confirmReservationUseCase.confirmReservation(
 								userId = userId,
 								ConfirmReservationUseCase.Input(
 									reservationUuid = UUID.randomUUID().toString(),
-									seatId = seatId
+									seatHoldUuid = seatHoldUuid
 								)
 							)
 							results.add(true)

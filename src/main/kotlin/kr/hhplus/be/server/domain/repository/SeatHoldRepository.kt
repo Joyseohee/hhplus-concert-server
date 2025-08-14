@@ -6,7 +6,11 @@ interface SeatHoldRepository {
 
 	fun findByUuid(seatHoldUuid: String): SeatHold?
 
+	fun findByUserIdAndUuid(userId: Long, seatHoldUuid: String): SeatHold?
+
 	fun findValidSeatHoldBySeatId(userId: Long, seatId: Long): SeatHold?
+
+	fun findValidSeatHold(concertId: Long, seatId: Long): SeatHold?
 
 	fun findAllConcertIdAndSeatIdAndNotExpired(concertId: Long, seatId: List<Long>): List<SeatHold>
 

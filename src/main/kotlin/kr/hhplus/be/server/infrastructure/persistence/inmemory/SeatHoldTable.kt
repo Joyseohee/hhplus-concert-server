@@ -15,6 +15,16 @@ class SeatHoldTable : SeatHoldRepository {
         return table.values.find { it.seatHoldUuid == uuid }
     }
 
+    override fun findByUserIdAndUuid(
+        userId: Long,
+        seatHoldUuid: String
+    ): SeatHold? {
+        Thread.sleep(Math.random().toLong() * 200L)
+        return table.values.find {
+            it.seatHoldUuid == seatHoldUuid && it.userId == userId && it.expiresAt.isAfter(Instant.now())
+        }
+    }
+
     override fun findValidSeatHoldBySeatId(userId: Long, seatId: Long): SeatHold? {
         Thread.sleep(Math.random().toLong() * 200L)
         return table.values.find {
@@ -22,6 +32,16 @@ class SeatHoldTable : SeatHoldRepository {
                 && it.userId == userId
             }
 
+    }
+
+    override fun findValidSeatHold(
+        concertId: Long,
+        seatId: Long
+    ): SeatHold? {
+        Thread.sleep(Math.random().toLong() * 200L)
+        return table.values.find {
+            it.concertId == concertId && it.seatId == seatId && it.expiresAt.isAfter(Instant.now())
+        }
     }
 
     override fun findAllConcertIdAndSeatIdAndNotExpired(

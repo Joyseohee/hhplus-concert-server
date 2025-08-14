@@ -2,14 +2,12 @@ package kr.hhplus.be.server.application
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.model.Seat
 import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.model.UserBalance
 import kr.hhplus.be.server.domain.repository.*
-import org.springframework.retry.ExhaustedRetryException
 import java.util.*
 
 class ConfirmReservationUseCaseTest(
@@ -58,7 +56,7 @@ class ConfirmReservationUseCaseTest(
                     hold.userId,
                     ConfirmReservationUseCase.Input(
                         reservationUuid = UUID.randomUUID().toString(),
-                        seatId = hold.seatId
+                        seatHoldUuid = hold.seatHoldUuid
                     )
                 )
 
@@ -69,7 +67,7 @@ class ConfirmReservationUseCaseTest(
                 val savedRes = reservationRepository.findBySeatId(seat.seatId)!!
                 savedRes.seatId shouldBe seat.seatId
 
-                seatHoldRepository.findValidSeatHoldBySeatId(userId = user.userId, seatId = seat.seatId) shouldBe null
+                seatHoldRepository.findByUserIdAndUuid(userId = user.userId, seatHoldUuid = hold.seatHoldUuid) shouldBe null
 
                 queueTokenRepository.findByUserId(user.userId) shouldBe null
 
@@ -93,16 +91,15 @@ class ConfirmReservationUseCaseTest(
                     QueueToken.create(userId = user.userId!!, status = QueueToken.Status.ACTIVE)
                 )
 
-                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                shouldThrowExactly<IllegalArgumentException> {
                     confirmReservationUseCase.confirmReservation(
                         user.userId,
                         ConfirmReservationUseCase.Input(
                             reservationUuid = UUID.randomUUID().toString(),
-                            seatId = seat.seatId!!
+                            seatHoldUuid = UUID.randomUUID().toString()
                         )
                     )
                 }
-                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
             }
         }
 
@@ -123,16 +120,15 @@ class ConfirmReservationUseCaseTest(
                     QueueToken.create(userId = user.userId, status = QueueToken.Status.ACTIVE)
                 )
 
-                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                shouldThrowExactly<IllegalArgumentException> {
                     confirmReservationUseCase.confirmReservation(
                         user.userId,
                         ConfirmReservationUseCase.Input(
                             reservationUuid = UUID.randomUUID().toString(),
-                            seatId = seatHold.seatId
+                            seatHoldUuid = seatHold.seatHoldUuid
                         )
                     )
                 }
-                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
             }
         }
     }
@@ -152,17 +148,15 @@ class ConfirmReservationUseCaseTest(
                     )
                 )
 
-                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                shouldThrowExactly<IllegalArgumentException> {
                     confirmReservationUseCase.confirmReservation(
                         999L,
                         ConfirmReservationUseCase.Input(
                             reservationUuid = UUID.randomUUID().toString(),
-                            seatId = seat.seatId
+                            seatHoldUuid = hold.seatHoldUuid
                         )
                     )
                 }
-
-                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
             }
         }
 
@@ -183,19 +177,16 @@ class ConfirmReservationUseCaseTest(
                     )
                 )
 
-                val exception = shouldThrowExactly<ExhaustedRetryException> {
+                shouldThrowExactly<IllegalArgumentException> {
                     confirmReservationUseCase.confirmReservation(
                         user.userId,
                         ConfirmReservationUseCase.Input(
                             reservationUuid = UUID.randomUUID().toString(),
-                            seatId = seat.seatId!!
+                            seatHoldUuid = hold.seatHoldUuid
                         )
                     )
                 }
-                exception.cause.shouldBeInstanceOf<IllegalArgumentException>()
             }
         }
     }
-
-
 })

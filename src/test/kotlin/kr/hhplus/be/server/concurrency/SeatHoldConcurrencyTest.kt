@@ -140,7 +140,7 @@ class SeatHoldConcurrencyTest @Autowired constructor(
 								user.userId,
 								ConfirmReservationUseCase.Input(
 									reservationUuid = UUID.randomUUID().toString(),
-									seatId = seat.seatId!!
+									seatHoldUuid = hold.seatHoldUuid
 								)
 							)
 							results.add(null)

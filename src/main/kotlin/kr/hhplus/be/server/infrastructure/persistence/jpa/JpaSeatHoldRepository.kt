@@ -16,9 +16,30 @@ class JpaSeatHoldRepository(
 		return repository.findBySeatHoldUuid(seatHoldUuid)
 	}
 
+	override fun findByUserIdAndUuid(
+		userId: Long,
+		seatHoldUuid: String
+	): SeatHold? {
+		return repository.findByUserIdAndSeatHoldUuid(
+			userId = userId,
+			seatHoldUuid = seatHoldUuid
+		)
+	}
+
 	override fun findValidSeatHoldBySeatId(userId: Long, seatId: Long): SeatHold? {
 		return repository.findByUserIdAndSeatIdAndExpiresAtAfter(
 			userId = userId,
+			seatId = seatId,
+			now = Instant.now()
+		)
+	}
+
+	override fun findValidSeatHold(
+		concertId: Long,
+		seatId: Long
+	): SeatHold? {
+		return repository.findByConcertIdAndSeatIdAndExpiresAtAfter(
+			concertId = concertId,
 			seatId = seatId,
 			now = Instant.now()
 		)
