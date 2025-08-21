@@ -15,6 +15,7 @@ class ConfirmReservationUseCase(
 	private val reservationRepository: ReservationRepository,
 	private val userBalanceRepository: UserBalanceRepository,
 	private val queueTokenRepository: QueueTokenRepository,
+	private val concertAggregationRepository: ConcertAggregationRepository,
 ) {
 
 	@RedisLock(
@@ -48,7 +49,9 @@ class ConfirmReservationUseCase(
 			price = seat.price
 		))
 
-		// region - 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다. 추후 비동기 처리로 변경.
+		// region - 추후 비동기 처리로 변경. 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다.
+		concertAggregationRepository.incrementScore("popular:concerts", seatHold.concertId)
+
 		seatHoldRepository.deleteById(seatHold)
 
 		// 토큰 만료
