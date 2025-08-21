@@ -19,13 +19,11 @@ class RequestQueueTokenUseCase(
 		newToken.activate(activeCount + 1)
 		val token = queueTokenRepository.save(newToken)
 
-		val position = queueTokenRepository.findPositionById(token.tokenId!!)
-
 		return Output(
 			token = token.token,
 			status = token.status.name,
-			position = position ?: 0,
-			expiresAt = token.expiresAt
+			position = token.position,
+			expiresAt = token.expiresAt!!
 		)
 	}
 

@@ -99,14 +99,14 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                             // 좌석 점유 요청을 생성합니다.
                             SeatHold.create(
                                 seatHoldUuid = UUID.randomUUID().toString(),
-                                userId = user.userId!!,
+                                userId = user.userId,
                                 concertId = 1L, // 임의의 콘서트 ID
                                 seatId = seats.get(0).seatId!!,
                             )
                         )
 
                         reservationUseCase.confirmReservation(
-                            userId = user.userId!!,
+                            userId = user.userId,
                             input = ConfirmReservationUseCase.Input(
                                 reservationUuid = UUID.randomUUID().toString(),
                                 seatHoldUuid = hold.seatHoldUuid
@@ -122,14 +122,14 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                             // 좌석 점유 요청을 생성합니다.
                             SeatHold.create(
                                 seatHoldUuid = UUID.randomUUID().toString(),
-                                userId = user.userId!!,
+                                userId = user.userId,
                                 concertId = 1L, // 임의의 콘서트 ID
                                 seatId = seats.get(1).seatId!!,
                             )
                         )
 
                         reservationUseCase.confirmReservation(
-                            userId = user.userId!!,
+                            userId = user.userId,
                             input = ConfirmReservationUseCase.Input(
                                 reservationUuid = UUID.randomUUID().toString(),
                                 seatHoldUuid = hold.seatHoldUuid
@@ -141,10 +141,10 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                 }
                 latch.await()
 
-                val finalBalance = userBalanceRepository.findById(user.userId!!)?.balance ?: 0
+                val finalBalance = userBalanceRepository.findById(user.userId)?.balance ?: 0
                 println("최종 잔액: $finalBalance")
 
-                finalBalance shouldBe initialBalance - amount // 100_000 - 1_000 * 2
+                finalBalance shouldBe initialBalance - amount // 100_000 - 1_000
             }
         }
     }
@@ -174,7 +174,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                     // 좌석 점유 요청을 생성합니다.
                     SeatHold.create(
                         seatHoldUuid = UUID.randomUUID().toString(),
-                        userId = user.userId!!,
+                        userId = user.userId,
                         concertId = 1L, // 임의의 콘서트 ID
                         seatId = seats.get(0).seatId!!,
                     )
@@ -190,7 +190,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                     executor.submit {
                         try {
                             chargeBalanceUseCase.chargeBalance(
-                                userId = user.userId!!,
+                                userId = user.userId,
                                 input = ChargeBalanceUseCase.Input(amount = amount)
                             )
                         } finally {
@@ -201,7 +201,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                     executor.submit {
                         try {
                             reservationUseCase.confirmReservation(
-                                userId = user.userId!!,
+                                userId = user.userId,
                                 input = ConfirmReservationUseCase.Input(
                                     reservationUuid = UUID.randomUUID().toString(),
                                     seatHoldUuid = hold.seatHoldUuid
@@ -215,7 +215,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                 }
                 latch.await()
 
-                val finalBalance = userBalanceRepository.findById(user.userId!!)?.balance ?: 0
+                val finalBalance = userBalanceRepository.findById(user.userId)?.balance ?: 0
 
                 finalBalance shouldBe initialBalance + amount // 충전은 두 번 모두 정상적으로 이뤄지지만 결제는 좌석 당 한 번만 가능하다.
             }

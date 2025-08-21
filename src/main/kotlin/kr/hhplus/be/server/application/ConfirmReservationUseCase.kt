@@ -58,7 +58,7 @@ class ConfirmReservationUseCase(
 		val queueToken = queueTokenRepository.findByUserId(userId)
 			?: throw IllegalArgumentException("사용자 토큰을 찾을 수 없습니다. 사용자 ID: $userId")
 
-		queueTokenRepository.deleteById(queueToken.tokenId!!)
+		queueTokenRepository.deleteById(queueToken.userId)
 		// endregion
 
 		return Output(

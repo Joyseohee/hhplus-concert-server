@@ -113,8 +113,10 @@ class ListPopularConcertUseCaseTest(
 				)
 
 				queueTokenRepository.save(
-					QueueToken.create(userId = user.userId, status = QueueToken.Status.ACTIVE)
+					QueueToken.create(userId = user.userId)
 				)
+
+				queueTokenRepository.activate(1, Instant.now())
 
 				confirmReservationUseCase.confirmReservation(
 					userId = user.userId,
