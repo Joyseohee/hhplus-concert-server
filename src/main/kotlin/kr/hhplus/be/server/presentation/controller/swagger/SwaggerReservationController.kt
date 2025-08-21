@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
+import kr.hhplus.be.server.application.ListPopularConcertUseCase
 import kr.hhplus.be.server.application.ListSeatUseCase
 import kr.hhplus.be.server.support.ApiResponse
 import org.springframework.http.ResponseEntity
@@ -60,6 +61,53 @@ interface SwaggerReservationController {
 	)
 	fun getConcerts(
 	): ResponseEntity<ApiResponse<ListConcertUseCase.Output>>
+
+	@Operation(summary = "인기 콘서트 목록 조회", tags = ["Reservations"])
+	@SwaggerApiResponse(
+		responseCode = "200", description = "조회 성공",
+		content = [Content(
+			mediaType = "application/json",
+			schema = Schema(implementation = ApiResponse::class),
+			examples = [ExampleObject(
+				"""
+          {
+            "code": "SUCCESS",
+            "message": "요청이 성공했습니다.",
+            "data": [
+              {
+                "rank": 1,
+                "concertId": 1,
+                "concertDateTime": "2023-10-01T19:00:00",
+                "concertVenue": "서울 올림픽공원 체조경기장",
+                "concertTitle": "2023 HH+ Concert",
+                "isAvailable": true
+              },
+              {
+                "rank": 2,
+                "concertId": 2,
+                "concertDateTime": "2023-10-02T19:00:00",
+                "concertVenue": "서울 올림픽공원 주경기장",
+                "concertTitle": "2023 Jazz Concert",
+                "isAvailable": false
+              }
+            ]
+          }
+          """
+			)]
+		)]
+	)
+	@Parameter(
+		name = "Queue-Token",
+		`in` = ParameterIn.HEADER,
+		description = "대기열 토큰",
+		required = true,
+		schema = Schema(
+			type = "string",
+			format = "encoded",
+			example = "abcac10b-58cc-4372-a567-0e02b2c3d479"
+		)
+	)
+	fun getPopularConcert(): ResponseEntity<ApiResponse<ListPopularConcertUseCase.Output>>
 
 	@Operation(summary = "특정 콘서트의 좌석 목록 조회", tags = ["Reservations"])
 	@SwaggerApiResponse(responseCode = "200", description = "조회 성공",

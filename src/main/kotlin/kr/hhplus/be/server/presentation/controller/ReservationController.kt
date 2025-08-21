@@ -4,6 +4,7 @@ package kr.hhplus.be.server.presentation.controller
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
+import kr.hhplus.be.server.application.ListPopularConcertUseCase
 import kr.hhplus.be.server.application.ListSeatUseCase
 import kr.hhplus.be.server.presentation.CurrentUser
 import kr.hhplus.be.server.presentation.controller.swagger.SwaggerReservationController
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/reservations")
 class ReservationController(
 	val listConcertUseCase: ListConcertUseCase,
+	val listPopularConcertUseCase: ListPopularConcertUseCase,
 	val listSeatUseCase: ListSeatUseCase,
 	val holdSeatUseCase: HoldSeatUseCase,
 	val confirmReservationUseCase: ConfirmReservationUseCase,
@@ -29,6 +31,19 @@ class ReservationController(
 				code = "SUCCESS",
 				message = "조회 성공",
 				data = concerts
+			)
+		)
+	}
+
+	@GetMapping("/concerts/popular")
+	override fun getPopularConcert(): ResponseEntity<ApiResponse<ListPopularConcertUseCase.Output>> {
+		val popularConcerts = listPopularConcertUseCase.listPopularConcert()
+
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "조회 성공",
+				data = popularConcerts
 			)
 		)
 	}
