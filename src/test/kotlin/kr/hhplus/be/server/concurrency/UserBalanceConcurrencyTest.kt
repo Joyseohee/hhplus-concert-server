@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.application.ChargeBalanceUseCase
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
+import kr.hhplus.be.server.application.schedule.ExpireStatusScheduler
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.model.Seat
 import kr.hhplus.be.server.domain.model.SeatHold
@@ -20,6 +21,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
     private val seatHoldRepository: SeatHoldRepository,
     private val reservationRepository: ReservationRepository,
     private val queueTokenRepository: QueueTokenRepository,
+    private val expireStatusScheduler: ExpireStatusScheduler,
     private val chargeBalanceUseCase: ChargeBalanceUseCase,
     private val reservationUseCase: ConfirmReservationUseCase
 ) : KotestIntegrationSpec({
@@ -88,7 +90,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                         userId = user.userId!!
                     )
                 )
-
+                expireStatusScheduler.expireStatuses()
                 val threadCount = 2
                 val latch = CountDownLatch(threadCount)
                 val executor = Executors.newFixedThreadPool(threadCount)
@@ -169,7 +171,7 @@ class UserBalanceConcurrencyTest @Autowired constructor(
                         userId = user.userId!!
                     )
                 )
-
+                expireStatusScheduler.expireStatuses()
                 val hold = seatHoldRepository.save(
                     // 좌석 점유 요청을 생성합니다.
                     SeatHold.create(
