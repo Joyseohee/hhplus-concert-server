@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.repository
 
 import kr.hhplus.be.server.domain.model.QueueToken
+import java.time.Instant
 
 interface QueueTokenRepository {
 
@@ -8,29 +9,19 @@ interface QueueTokenRepository {
 
 	fun findByToken(token: String): QueueToken?
 
-	fun findValidatedByToken(token: String): QueueToken?
-
 	fun findActiveByToken(token: String): QueueToken?
-
-	fun findAllWaitingTokenForActivate(i: Int): List<QueueToken>
-
-	fun findAllActivated(): List<QueueToken>
 
 	fun findAll(): List<QueueToken>
 
-	fun findPositionById(id: Long): Int?
-
-	fun findTokensToExpire(): List<QueueToken>
-
 	fun countByStatus(active: QueueToken.Status): Int
+
+	fun activate(count: Int, now: Instant)
 
 	fun save(queueToken: QueueToken): QueueToken
 
-	fun saveAll(queueTokens: List<QueueToken>): List<QueueToken>
+	fun deleteExpired(now: Instant)
 
 	fun deleteById(id: Long)
-
-	fun deleteByIds(ids: List<Long>)
 
 	fun clear()
 
