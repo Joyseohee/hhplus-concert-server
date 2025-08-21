@@ -16,7 +16,8 @@ class ConfirmReservationUseCaseTest(
     private val seatHoldRepository: SeatHoldRepository,
     private val reservationRepository: ReservationRepository,
     private val userBalanceRepository: UserBalanceRepository,
-    private val queueTokenRepository: QueueTokenRepository
+    private val queueTokenRepository: QueueTokenRepository,
+    private val concertAggregationRepository: ConcertAggregationRepository,
 ) : KotestIntegrationSpec({
 
     val CONCERT_ID = 1L
@@ -29,6 +30,7 @@ class ConfirmReservationUseCaseTest(
         seatRepository.clear()
         userBalanceRepository.clear()
         queueTokenRepository.clear()
+        concertAggregationRepository.clear("popular:concerts")
     }
 
     given("유효한 좌석 점유와 활성 토큰이 주어졌을 때") {
