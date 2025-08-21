@@ -7,6 +7,8 @@ interface ConcertRepository {
 
 	fun findAllOrderByShowDateTime(): List<Concert> = emptyList()
 
+	fun findByIds(ids: List<Long>): List<Concert> = emptyList()
+
 	fun save(concert: Concert): Concert
 
 	fun saveAll(concerts: List<Concert>): List<Concert> = emptyList()

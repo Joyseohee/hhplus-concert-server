@@ -18,6 +18,10 @@ class JpaConcertRepository(
 		return repository.findAllByOrderByShowDateTimeDesc()
 	}
 
+	override fun findByIds(ids: List<Long>): List<Concert> {
+		return repository.findAllById(ids)
+	}
+
 	override fun save(concert: Concert): Concert {
 		return repository.save(concert)
 	}
