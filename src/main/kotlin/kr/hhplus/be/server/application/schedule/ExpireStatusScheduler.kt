@@ -17,20 +17,17 @@ class ExpireStatusScheduler(
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
-	// 1분마다 만료 상태 갱신
-	@Scheduled(fixedDelay = 60_000)
+	@Scheduled(fixedDelay = 5_000L)
 	@Transactional
 	fun expireStatuses() {
 		log.info("스케줄러 실행 시점 :: ${Instant.now()}")
 		// QueueToken 만료 처리
-		val tokens = queueTokenRepository.findTokensToExpire()
-		queueTokenRepository.deleteByIds(tokens.map { it.tokenId!! })
+		val now = Instant.now()
+		queueTokenRepository.deleteExpired(now)
 
 		// 만료된 수만큼 activate 상태로 변경
 		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
-		val forActivate = queueTokenRepository.findAllWaitingTokenForActivate(MAX_ACTIVE_COUNT - activeCount)
-		forActivate.forEach { it.activate(activeCount + 1) }
-		queueTokenRepository.saveAll(forActivate)
+		queueTokenRepository.activate(MAX_ACTIVE_COUNT - activeCount, now)
 
 		// SeatHold 만료 처리
 		val holds = seatHoldRepository.findHoldsToExpire()

@@ -26,7 +26,7 @@ class QueueToken private constructor(
 			expiresAt: Instant? = null,
 			status: Status = Status.WAITING,
 		): QueueToken {
-			return QueueToken(tokenId = tokenId, userId = userId, token = token, expiresAt = expiresAt, status = status)
+			return QueueToken(userId = userId, token = "queue:${status.name.lowercase()}:${userId}", position = position, expiresAt = expiresAt, status = status)
 		}
 	}
 

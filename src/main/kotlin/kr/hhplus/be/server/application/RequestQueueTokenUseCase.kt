@@ -13,10 +13,7 @@ class RequestQueueTokenUseCase(
 ) {
 	@Transactional
 	fun createToken(userId: Long): Output {
-		val activeCount = queueTokenRepository.findAllActivated().size
-
 		val newToken = QueueToken.create(userId = userId)
-		newToken.activate(activeCount + 1)
 		val token = queueTokenRepository.save(newToken)
 
 		return Output(
@@ -29,7 +26,7 @@ class RequestQueueTokenUseCase(
 
 	@Schema(description = "토큰 발급 응답 DTO")
 	data class Output(
-		@Schema(description = "토큰", example = "abcac10b-58cc-4372-a567-0e02b2c3d479")
+		@Schema(description = "토큰", example = "queue:waiting:1234567890")
 		val token: String,
 		@Schema(description = "토큰 상태", example = "WAITING")
 		val status: String,
