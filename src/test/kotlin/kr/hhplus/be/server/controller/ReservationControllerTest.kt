@@ -8,6 +8,7 @@ import io.mockk.mockk
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
+import kr.hhplus.be.server.application.ListPopularConcertUseCase
 import kr.hhplus.be.server.application.ListSeatUseCase
 import kr.hhplus.be.server.application.validation.ValidateQueueTokenService
 import kr.hhplus.be.server.application.validation.ValidateUserService
@@ -38,6 +39,7 @@ class ReservationControllerTest(
 	private val holdSeatUseCase: HoldSeatUseCase,
 	private val confirmReservationUseCase: ConfirmReservationUseCase,
 	private val concertUseCase: ListConcertUseCase,
+	private val listPopularConcertUseCase: ListPopularConcertUseCase,
 	private val seatUseCase: ListSeatUseCase,
 	private val validateQueueTokenService: ValidateQueueTokenService,
 	private val validateUserService: ValidateUserService
@@ -183,6 +185,50 @@ class ReservationControllerTest(
 				}
 			}
 		}
+
+		given("인기 콘서트 목록 조회 API GET /api/v1/reservations/concerts/popular") {
+			`when`("유효한 토큰이 주어지면") {
+				then("200 OK, SUCCESS 반환") {
+					every {
+						listPopularConcertUseCase.listPopularConcert()
+					} returns ListPopularConcertUseCase.Output(
+						popularConcert = listOf(
+							ListPopularConcertUseCase.Output.ConcertInfo(
+								rank = 1,
+								concertId = 1L,
+								concertTitle = "Test Concert",
+								concertVenue = "Test Venue",
+								concertDateTime = EXPIRES_AT.toString(),
+								isAvailable = true
+							),
+							ListPopularConcertUseCase.Output.ConcertInfo(
+								rank = 2,
+								concertId = 2L,
+								concertTitle = "Test Concert",
+								concertVenue = "Test Venue",
+								concertDateTime = EXPIRES_AT.toString(),
+								isAvailable = true
+							),
+							ListPopularConcertUseCase.Output.ConcertInfo(
+								rank = 3,
+								concertId = 3L,
+								concertTitle = "Test Concert",
+								concertVenue = "Test Venue",
+								concertDateTime = EXPIRES_AT.toString(),
+								isAvailable = true
+							),
+						)
+					)
+
+					mockMvc.get("/api/v1/reservations/concerts/popular") {
+						header(QUEUE_TOKEN_HEADER, VALID_TOKEN)
+					}.andExpect {
+						status { isOk() }
+						jsonPath("$.code") { value("SUCCESS") }
+					}
+				}
+			}
+		}
 	}
 
 	@TestConfiguration
@@ -193,6 +239,8 @@ class ReservationControllerTest(
 		fun confirmReservationUseCase() = mockk<ConfirmReservationUseCase>(relaxed = true)
 		@Bean
 		fun concertUseCase() = mockk<ListConcertUseCase>(relaxed = true)
+		@Bean
+		fun listPopularConcertUseCase() = mockk<ListPopularConcertUseCase>(relaxed = true)
 		@Bean
 		fun seatUseCase() = mockk<ListSeatUseCase>(relaxed = true)
 		@Bean
