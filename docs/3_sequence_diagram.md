@@ -18,6 +18,8 @@
 - [동시성 이슈 : 분산락 보고서](7_redis_distributed_lock_report.md)
 ### 캐시 전략 보고서
 - [캐시 전략 보고서](8_redis_cash_report.md)
+### 레디스 저장소 보고서
+- [자료구조를 활용한 랭킹 시스템, 비동기 시스템 설계 및 구현 보고서](9_redis_datastructure.md)
 
 ## 📋 시퀀스 다이어그램
 

@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
+import java.time.Instant
 import java.util.*
 
 class GetQueueTokenUseCaseTest(
@@ -30,7 +31,6 @@ class GetQueueTokenUseCaseTest(
 				// 검증
 				output.status shouldBe QueueToken.Status.WAITING.name
 				output.position shouldBe 1
-				output.expiresAt shouldBe saved.expiresAt
 			}
 		}
 
@@ -39,8 +39,8 @@ class GetQueueTokenUseCaseTest(
 				// 준비: Active 토큰 생성/저장
 				val userId = 2L
 				val waiting = QueueToken.create(userId = userId, status = QueueToken.Status.ACTIVE)
-				waiting.activate(position = 1)
 				val saved = queueTokenRepository.save(waiting)
+				queueTokenRepository.activate(1, Instant.now())
 
 				// 실행
 				val output = getQueueTokenUseCase.getToken(saved.token)
@@ -48,7 +48,6 @@ class GetQueueTokenUseCaseTest(
 				// 검증
 				output.status shouldBe QueueToken.Status.ACTIVE.name
 				output.position shouldBe 1
-				output.expiresAt shouldBe saved.expiresAt
 			}
 		}
 

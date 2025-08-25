@@ -50,8 +50,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-aop")
 
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.redisson:redisson-spring-boot-starter:3.18.0")
+	implementation("org.redisson:redisson-spring-boot-starter:3.50.0")
 	implementation("org.springframework.retry:spring-retry")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
 	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")

@@ -22,7 +22,7 @@ class QueueTokenTest : FreeSpec({
 			listOf(0, 1).forEach { number ->
 				token.activate(MAX_ACTIVE_COUNT - number)
 				token.status shouldBe QueueToken.Status.ACTIVE
-				token.expiresAt shouldBeGreaterThanOrEqualTo now.plus(QueueToken.HOLD_TTL, ChronoUnit.MINUTES)
+				token.expiresAt!! shouldBeGreaterThanOrEqualTo now.plus(QueueToken.HOLD_TTL, ChronoUnit.MINUTES)
 			}
 		}
 
@@ -43,7 +43,7 @@ class QueueTokenTest : FreeSpec({
 				inactivatedToken.activate(MAX_ACTIVE_COUNT + 1)
 
 				inactivatedToken.status shouldBe QueueToken.Status.WAITING
-				inactivatedToken.expiresAt shouldBeGreaterThanOrEqualTo now
+				inactivatedToken.expiresAt!! shouldBeGreaterThanOrEqualTo now
 			}
 		}
 
@@ -90,7 +90,7 @@ class QueueTokenTest : FreeSpec({
 
 			couldNotExpiredToken.expire()
 			couldNotExpiredToken.status shouldBe QueueToken.Status.WAITING
-			couldNotExpiredToken.expiresAt shouldBeGreaterThanOrEqualTo now
+			couldNotExpiredToken.expiresAt!! shouldBeGreaterThanOrEqualTo now
 		}
 	}
 })

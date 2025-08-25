@@ -58,6 +58,11 @@ class ConcertTable : ConcertRepository {
         return concert
     }
 
+    override fun findByIds(ids: List<Long>): List<Concert> {
+        return ids.mapNotNull { table[it] }
+            .sortedBy { it.showDateTime }
+    }
+
     override fun saveAll(concerts: List<Concert>): List<Concert> {
         Thread.sleep(Math.random().toLong() * 300L)
         return concerts.map { save(it) }

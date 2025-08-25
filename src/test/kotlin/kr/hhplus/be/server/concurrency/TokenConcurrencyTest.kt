@@ -48,17 +48,7 @@ class TokenConcurrencyTest @Autowired constructor(
 				val latch = CountDownLatch(threadCount)
 				val executor = Executors.newFixedThreadPool(threadCount)
 
-				// lock을 위한 더미 데이터 인입
-				queueTokenRepository.save(
-					QueueToken.create(
-						userId = 0L,
-						status = QueueToken.Status.ACTIVE,
-						token = UUID.randomUUID().toString(),
-						expiresAt = Instant.now().plusSeconds(60)
-					)
-				)
-
-				repeat(threadCount) {   // -1은 lock을 위한 더미 데이터 인입
+				repeat(threadCount) {
 					executor.submit {
 						try {
 							// 사용자 초기화
@@ -73,18 +63,18 @@ class TokenConcurrencyTest @Autowired constructor(
 						}
 					}
 				}
-
 				latch.await()
+				expireStatusScheduler.expireStatuses()
 
 				// 최종 상태 확인
 				val queueTokens = queueTokenRepository.findAll()
 
 				// 모든 토큰이 발행되었는지 확인
-				queueTokens.size shouldBe threadCount + 1 // +1은 lock을 위한 더미 데이터
+				queueTokens.size shouldBe threadCount
 
 				// 토큰의 상태가 모두 ACTIVE인지 확인
 				queueTokens.filter { it.status == QueueToken.Status.ACTIVE }.size shouldBe MAX_ACTIVE_COUNT
-				queueTokens.filter { it.status == QueueToken.Status.WAITING }.size shouldBe overCount + 1 // +1은 lock을 위한 더미 데이터 인입
+				queueTokens.filter { it.status == QueueToken.Status.WAITING }.size shouldBe overCount
 
 				// 토큰의 생성 시간은 현재 시간보다 이전이어야 함
 				queueTokens.all { it.createdAt.isBefore(Instant.now()) } shouldBe true
@@ -110,10 +100,10 @@ class TokenConcurrencyTest @Autowired constructor(
 				// 절반의 토큰을 만료(EXPIRED) 상태로 변경 (expiresAt을 과거로 설정)
 				val now = Instant.now()
 				val expiredTokens = userTokens.take(threadCount / 2)
-				expiredTokens.forEach { (_, token) ->
+				expiredTokens.forEach { (userId, token) ->
 					val queueToken = queueTokenRepository.findByToken(token)
 					if (queueToken != null) {
-						val expired = queueToken.copy(status = QueueToken.Status.EXPIRED, expiresAt = now.minusSeconds(60))
+						val expired = queueToken.copy(status = QueueToken.Status.ACTIVE, expiresAt = now.minusSeconds(60))
 						queueTokenRepository.save(expired)
 					}
 				}
