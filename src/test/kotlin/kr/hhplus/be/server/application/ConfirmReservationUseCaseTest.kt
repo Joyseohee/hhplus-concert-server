@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.model.Seat
@@ -43,13 +44,14 @@ class ConfirmReservationUseCaseTest(
                     Seat.create(seatNumber = SEAT_NUMBER, price = PRICE)
                 )
                 val hold = seatHoldRepository.save(
-                    SeatHold.create(
+                    SeatHold.held(
                         seatHoldUuid = UUID.randomUUID().toString(),
                         userId = user.userId!!,
                         concertId = CONCERT_ID,
                         seatId = seat.seatId!!
                     )
                 )
+
                 val savedToken = queueTokenRepository.save(
                     QueueToken.create(userId = user.userId, status = QueueToken.Status.ACTIVE)
                 )
@@ -69,7 +71,7 @@ class ConfirmReservationUseCaseTest(
                 val savedRes = reservationRepository.findBySeatId(seat.seatId)!!
                 savedRes.seatId shouldBe seat.seatId
 
-                seatHoldRepository.findByUserIdAndUuid(userId = user.userId, seatHoldUuid = hold.seatHoldUuid) shouldBe null
+                seatHoldRepository.findByUserIdAndUuid(userId = user.userId, seatHoldUuid = hold.seatHoldUuid) shouldNotBe null
 
                 queueTokenRepository.findByUserId(user.userId) shouldBe null
 

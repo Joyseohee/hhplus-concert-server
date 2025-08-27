@@ -50,7 +50,7 @@ class JpaSeatHoldRepository(
 	}
 
 	override fun findHoldsToExpire(): List<SeatHold> {
-		return repository.findByExpiresAtBefore(now = Instant.now())
+		return repository.findByExpiresAtBeforeAndStatusIs(now = Instant.now(), status = SeatHold.Status.HOLD)
 	}
 
 	override fun save(seatHold: SeatHold): SeatHold {

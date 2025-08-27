@@ -13,7 +13,7 @@ interface SpringDataSeatHoldRepository : JpaRepository<SeatHold, Long> {
 
 	fun findAllByConcertIdAndSeatIdInAndExpiresAtAfter(concertId: Long, seatId: List<Long>, now: Instant): List<SeatHold>
 
-	fun findByExpiresAtBefore(now: Instant): List<SeatHold>
+	fun findByExpiresAtBeforeAndStatusIs(now: Instant, status: SeatHold.Status): List<SeatHold>
 
 	fun findByConcertIdAndSeatIdAndExpiresAtAfter(concertId: Long, seatId: Long, now: Instant): SeatHold?
 }
