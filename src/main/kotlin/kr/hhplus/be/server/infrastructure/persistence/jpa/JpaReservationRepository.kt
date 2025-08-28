@@ -10,6 +10,14 @@ import org.springframework.stereotype.Repository
 class JpaReservationRepository(
 	private val repository: SpringDataReservationRepository
 ) : ReservationRepository {
+	override fun findByIdOrElseThrow(id: Long): Reservation? {
+		return repository.findById(id).orElseThrow()
+	}
+
+	override fun findByUuid(uuid: String): Reservation? {
+		return repository.findByReservationUuid(uuid)
+	}
+
 	override fun findBySeatId(seatId: Long): Reservation? {
 		return repository.findBySeatId(seatId)
 	}

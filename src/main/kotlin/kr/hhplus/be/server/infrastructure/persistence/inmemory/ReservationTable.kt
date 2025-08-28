@@ -8,6 +8,13 @@ import java.util.concurrent.ConcurrentHashMap
 @Repository
 class ReservationTable : ReservationRepository {
 	private val table = ConcurrentHashMap<Long, Reservation>()
+	override fun findByIdOrElseThrow(id: Long): Reservation? {
+		return table[id]
+	}
+
+	override fun findByUuid(uuid: String): Reservation? {
+		return table.values.firstOrNull { it.reservationUuid == uuid }
+	}
 
 	override fun findBySeatId(seatId: Long): Reservation? {
 		return table.values.firstOrNull { it.seatId == seatId }
