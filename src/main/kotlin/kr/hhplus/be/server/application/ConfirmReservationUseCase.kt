@@ -2,6 +2,8 @@ package kr.hhplus.be.server.application
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.transaction.Transactional
+import kr.hhplus.be.server.application.event.publisher.ConfirmReservationEventPublisher
+import kr.hhplus.be.server.domain.model.ConfirmReservationEvent
 import kr.hhplus.be.server.domain.model.Reservation
 import kr.hhplus.be.server.domain.repository.*
 import kr.hhplus.be.server.support.annotation.RedisLock
@@ -14,8 +16,7 @@ class ConfirmReservationUseCase(
 	private val seatHoldRepository: SeatHoldRepository,
 	private val reservationRepository: ReservationRepository,
 	private val userBalanceRepository: UserBalanceRepository,
-	private val queueTokenRepository: QueueTokenRepository,
-	private val concertAggregationRepository: ConcertAggregationRepository,
+	private val eventPublisher: ConfirmReservationEventPublisher,
 ) {
 	@RedisLock(
 		key = "'lock:balance:{' + #userId + '}'",
@@ -48,15 +49,10 @@ class ConfirmReservationUseCase(
 			price = seat.price
 		))
 
-		// region - 추후 비동기 처리로 변경. 좌석 점유 만료 및 토큰 만료는 예약 확정 후에 처리합니다.
-		concertAggregationRepository.incrementScore("popular:concerts", seatHold.concertId)
-
-		// 토큰 만료
-		val queueToken = queueTokenRepository.findByUserId(userId)
-			?: throw IllegalArgumentException("사용자 토큰을 찾을 수 없습니다. 사용자 ID: $userId")
-
-		queueTokenRepository.deleteById(queueToken.userId)
-		// endregion
+		eventPublisher.publish(ConfirmReservationEvent(
+			userId = userId,
+			reservationId = confirmedReservation.reservationId!!
+		))
 
 		return Output(
 			concertId = confirmedReservation.concertId,
