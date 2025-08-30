@@ -20,6 +20,8 @@
 - [캐시 전략 보고서](8_redis_cash_report.md)
 ### 레디스 저장소 보고서
 - [자료구조를 활용한 랭킹 시스템, 비동기 시스템 설계 및 구현 보고서](9_redis_datastructure.md)
+- [도메인 분리 이후 트랜잭션 처리 전략 및 한계 분석](10_edd_transaction_doc.md)
+- [이벤트 호출 로직 시퀀스 다이어그램](11_event_call_sequence_diagram.md)
 
 
 ## 🚀 DB 성능 최적화 보고서

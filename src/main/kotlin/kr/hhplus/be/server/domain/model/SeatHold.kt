@@ -26,9 +26,15 @@ class SeatHold private constructor(
 	val concertId: Long,
 	@Column(name = "seat_id", nullable = false)
 	val seatId: Long,
+	@Column(name = "status", nullable = false) @Enumerated(EnumType.STRING)
+	val status: Status,
 	@Column(name = "expires_at", nullable = false)
 	val expiresAt: Instant,
 ) : BaseEntity() {
+	enum class Status {
+		HOLD, RESERVED
+	}
+
 	companion object {
 		const val VALID_HOLD_MINUTE = 5L
 
@@ -38,6 +44,7 @@ class SeatHold private constructor(
 			userId: Long,
 			concertId: Long,
 			seatId: Long,
+			status: Status = Status.HOLD,
 			expiresAt: Instant = Instant.now().plusSeconds(VALID_HOLD_MINUTE * 60),
 		): SeatHold {
 			return SeatHold(
@@ -46,6 +53,7 @@ class SeatHold private constructor(
 				userId = userId,
 				concertId = concertId,
 				seatId = seatId,
+				status = status,
 				expiresAt = expiresAt,
 			)
 		}
@@ -68,6 +76,30 @@ class SeatHold private constructor(
 				userId = userId,
 				concertId = concertId,
 				seatId = seatId,
+				status = Status.HOLD,
+				expiresAt = expiresAt,
+			)
+		}
+
+		fun reserved(
+			seatHoldId: Long? = null,
+			seatHoldUuid: String,
+			userId: Long,
+			concertId: Long,
+			seatId: Long,
+			expiresAt: Instant = Instant.now().plusSeconds(1 * 60),
+		): SeatHold {
+			if (expiresAt.isBefore(Instant.now())) {
+				throw IllegalArgumentException("좌석 점유 제한 시각은 현재 시각 이후여야 합니다. 현재: ${Instant.now()}, 만료 시각: $expiresAt")
+			}
+
+			return create(
+				seatHoldId = seatHoldId,
+				seatHoldUuid = seatHoldUuid,
+				userId = userId,
+				concertId = concertId,
+				seatId = seatId,
+				status = Status.RESERVED,
 				expiresAt = expiresAt,
 			)
 		}

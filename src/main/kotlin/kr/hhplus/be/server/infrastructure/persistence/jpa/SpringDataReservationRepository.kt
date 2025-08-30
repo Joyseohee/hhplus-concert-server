@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface SpringDataReservationRepository : JpaRepository<Reservation, Long> {
 	fun findBySeatId(seatId: Long): Reservation?
 	fun findAllBySeatIdIn(seatIds: List<Long>): List<Reservation>
+	fun findByReservationUuid(reservationUuid: String): Reservation?
 }

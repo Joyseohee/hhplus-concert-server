@@ -54,7 +54,9 @@ spring:
       max-lifetime: 60000
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-
+external:
+  reservation-service:
+    url: http://localhost:8080
 
 ---
 spring.config.activate.on-profile: test
@@ -78,3 +80,8 @@ logging:
     org.hibernate.orm.jdbc.bind: trace # Hibernate 6 이상
     com.zaxxer.hikari: DEBUG
     com.p6spy: DEBUG
+
+
+external:
+  reservation-service:
+    url: http://localhost:8080

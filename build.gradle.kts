@@ -68,6 +68,8 @@ dependencies {
 	testImplementation("io.kotest:kotest-assertions-core:5.8.1")
 	testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
 	implementation("p6spy:p6spy:3.9.1")
+	testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
+
 
 	// 	Docs
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")

@@ -23,6 +23,29 @@
 - [도메인 분리 이후 트랜잭션 처리 전략 및 한계 분석](10_edd_transaction_doc.md)
 - [이벤트 호출 로직 시퀀스 다이어그램](11_event_call_sequence_diagram.md)
 
-## 📋 상태 다이어그램
 
-<img alt="콘서트예약서비스STATE.png" src="STATE.png" width="800"/>
+## 📋 이벤트 호출 로직 시퀀스 다이어그램
+
+```mermaid
+sequenceDiagram
+    participant C as ConfirmReservationUseCase
+    participant P as ConfirmReservationEventPublisher
+    participant EH1 as PopularConcertEventHandler
+    participant EH2 as TokenExpireEventHandler
+    participant EH3 as ReservationSyncEventHandler
+    participant R as AggregatePopularConcertUseCase
+    participant Q as ExpireQueueTokenUseCase
+    participant API as SendReservationDataUseCase
+
+    C->>P: publish(ConfirmReservationEvent)
+    Note right of P: @TransactionalEventListener <br> (비동기 이벤트 처리)
+
+    P-->>EH1: handle(ConfirmReservationEvent)
+    EH1->>R: INCR concert:ranking:{concertId}
+
+    P-->>EH2: handle(ConfirmReservationEvent)
+    EH2->>Q: invalidateToken(userId, concertId)
+
+    P-->>EH3: handle(ConfirmReservationEvent)
+    EH3->>API: sendReservationPayload(...)
+```

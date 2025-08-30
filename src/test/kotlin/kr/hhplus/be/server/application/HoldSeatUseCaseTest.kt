@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import kr.hhplus.be.server.KotestIntegrationSpec
 import kr.hhplus.be.server.domain.model.Reservation
 import kr.hhplus.be.server.domain.model.Seat
+import kr.hhplus.be.server.domain.model.SeatHold
 import kr.hhplus.be.server.domain.repository.ReservationRepository
 import kr.hhplus.be.server.domain.repository.SeatHoldRepository
 import kr.hhplus.be.server.domain.repository.SeatRepository
@@ -78,14 +79,13 @@ class HoldSeatUseCaseTest(
 				val seat = seatRepository.save(
 					Seat.create(seatNumber = SEAT_NUMBER, price = PRICE)
 				)
-				reservationRepository.save(
-					Reservation.create(
-						reservationUuid = UUID.randomUUID().toString(),
+
+				seatHoldRepository.save(
+					SeatHold.reserved(
+						seatHoldUuid = UUID.randomUUID().toString(),
 						userId = 999L,
 						concertId = CONCERT_ID,
-						seatId = seat.seatId!!,
-						reservedAt = Instant.now(),
-						price = PRICE
+						seatId = seat.seatId!!
 					)
 				)
 
