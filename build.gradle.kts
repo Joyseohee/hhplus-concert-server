@@ -54,6 +54,8 @@ dependencies {
 	implementation("org.springframework.retry:spring-retry")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+
 	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")
 
@@ -62,6 +64,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("org.testcontainers:kafka:1.20.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("io.mockk:mockk:1.13.10")
 	testImplementation("io.kotest:kotest-runner-junit5:5.8.1")
@@ -76,6 +79,8 @@ dependencies {
 
 	// 	etc
 	implementation("org.projectlombok:lombok:1.18.28")
+	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 }
 
