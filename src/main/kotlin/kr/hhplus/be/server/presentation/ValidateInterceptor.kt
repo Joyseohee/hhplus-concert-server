@@ -13,9 +13,11 @@ class ValidateInterceptor(
     private val userService: ValidateUserService
 ) : HandlerInterceptor {
     override fun preHandle(r: HttpServletRequest, s: HttpServletResponse, h: Any): Boolean {
-        val userValidationPaths = setOf("/api/v1/queue/token", "/api/v1/balance", "/api/v1/balance/charge")
+        val userValidationPaths = setOf("/api/v1/queue/token", "/api/v1/queue/token/status", "/api/v1/balance", "/api/v1/balance/charge")
 
-        if (r.requestURI in userValidationPaths) {
+        if(r.requestURI in setOf("/api/v1/queue/token/status")) {
+            return true
+        } else if (r.requestURI in userValidationPaths) {
             val id = r.getHeader("User-Id")?.toLongOrNull()
                 ?: throw IllegalAccessException("User-Id 오류")
             userService.validateUser(id)

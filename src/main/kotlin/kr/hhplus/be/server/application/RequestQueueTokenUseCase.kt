@@ -4,17 +4,24 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.model.QueueToken
 import kr.hhplus.be.server.domain.repository.QueueTokenRepository
+import kr.hhplus.be.server.infrastructure.message.kafka.dto.QueueEnteredMessage
+import kr.hhplus.be.server.infrastructure.message.kafka.producer.QueueProducer
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
 class RequestQueueTokenUseCase(
+	private val queueProducer: QueueProducer,
 	private val queueTokenRepository: QueueTokenRepository
 ) {
 	@Transactional
 	fun createToken(userId: Long): Output {
 		val newToken = QueueToken.create(userId = userId)
 		val token = queueTokenRepository.save(newToken)
+
+		queueProducer.send(QueueEnteredMessage(
+			userId = userId,
+		))
 
 		return Output(
 			token = token.token,

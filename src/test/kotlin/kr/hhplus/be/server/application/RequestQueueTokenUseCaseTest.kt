@@ -9,7 +9,6 @@ import kr.hhplus.be.server.domain.repository.QueueTokenRepository
 
 class RequestQueueTokenUseCaseTest(
 	private val requestQueueTokenUseCase: RequestQueueTokenUseCase,
-	private val expireStatusScheduler: ExpireStatusScheduler,
 	private val queueTokenRepository: QueueTokenRepository
 ) : KotestIntegrationSpec({
 
@@ -27,18 +26,18 @@ class RequestQueueTokenUseCaseTest(
 				saved.status shouldBe QueueToken.Status.WAITING
 			}
 		}
+	}
 
-		`when`("현재 활성 토큰 수가 50개 이하인 경우 스케줄러가 돌면") {
-			then("토큰이 ACTIVE 상태로 발급되어 저장된다") {
-				val userId = 1L
-				requestQueueTokenUseCase.createToken(userId = userId)
+	given("대기열에 있는 사용자가") {
+		`when`("스케줄러가 실행되면") {
+			then("토큰이 WAITING에서 ACTIVE로 변경된다") {
+				val output = requestQueueTokenUseCase.createToken(userId = 100L)
 
-				expireStatusScheduler.expireStatuses()
+				Thread.sleep(2000) // 컨슈머가 버퍼에 쌓을 시간 확보
 
-				val activeToken = queueTokenRepository.findByUserId(userId)
-
-				activeToken shouldNotBe null
-				activeToken?.status shouldBe QueueToken.Status.ACTIVE
+				output.status shouldBe QueueToken.Status.WAITING.name
+				val saved = queueTokenRepository.findByToken(output.token)!!
+				saved.status shouldBe QueueToken.Status.ACTIVE
 			}
 		}
 	}

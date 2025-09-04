@@ -1,30 +1,25 @@
 package kr.hhplus.be.server.application
 
-import kr.hhplus.be.server.application.client.ReservationDataClient
-import kr.hhplus.be.server.application.client.request.ReservationDataRequest
-import kr.hhplus.be.server.application.client.response.ReservationDataResponse
 import kr.hhplus.be.server.domain.repository.ReservationRepository
+import kr.hhplus.be.server.infrastructure.message.kafka.dto.ConfirmReservationMessage
+import kr.hhplus.be.server.infrastructure.message.kafka.producer.ReservationProducer
 import org.springframework.stereotype.Service
 
 @Service
 class SendReservationDataUseCase(
-	private val reservationDataClient: ReservationDataClient,
+	private val reservationProducer: ReservationProducer,
 	private val reservationRepository: ReservationRepository
 ) {
 	fun execute(reservationId: Long, userId: Long) {
 		val reservation = reservationRepository.findByIdOrElseThrow(reservationId)
 
-		val response = reservationDataClient.execute(
-			ReservationDataRequest(
-				reservationId = reservationId,
-				concertId = reservation!!.concertId,
+		reservationProducer.send(
+			ConfirmReservationMessage(
 				userId = userId,
+				reservationId = reservation!!.reservationId!!,
+				concertId = reservation.concertId
 			)
 		)
-
-		if (response == null || response.resultType == ReservationDataResponse.ResultType.FAILURE) {
-			throw IllegalStateException("예약 데이터 전송에 실패했습니다. reservationId=$reservationId, userId=$userId")
-		}
 	}
 
 }
