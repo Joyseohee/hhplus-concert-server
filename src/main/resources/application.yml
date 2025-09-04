@@ -1,32 +1,62 @@
+app:
+  kafka:
+    topics:
+      queue: queue
+      reservation: reservation
+    # 개발/테스트에서는 자동 생성 가능(운영에선 보통 꺼둠)
+    autocreate: true
+
 spring:
   application:
     name: concert
   profiles:
     active: local
+  docker:
+    compose:
+      enabled: true
+      file: compose.yml
+      lifecycle-management: start-and-stop
+      skip:
+        in-tests: true
+      profiles:
+        active: local
   datasource:
-    name: HangHaePlusDataSource
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/hhplus?connectTimeout=10000&socketTimeout=10000&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC   # ⬅️ mysql 서비스명
     username: application
     password: application
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 3
       connection-timeout: 10000
       max-lifetime: 60000
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    jpa:
-      open-in-view: false
-      generate-ddl: false
-      hibernate:
-        ddl-auto: none
-      properties:
-        hibernate.timezone.default_storage: NORMALIZE_UTC
-        hibernate.jdbc.time_zone: UTC
+  jpa:
+    open-in-view: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate.timezone.default_storage: NORMALIZE_UTC
+      hibernate.jdbc.time_zone: UTC
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
   data:
     redis:
-      host: localhost
+      host: localhost    # ⬅️ redis 서비스명
       port: 6379
       timeout: 3000
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      ack-mode: manual
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: concert-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 
 springdoc:
   api-docs:
@@ -37,26 +67,10 @@ springdoc:
     tagsSorter: none
     operationsSorter: none
 
-
----
-spring.config.activate.on-profile: local
-spring:
-  datasource:
-    name: HangHaePlusDataSource
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-    username: application
-    password: application
-    hikari:
-      jdbc-url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-      maximum-pool-size: 3
-      connection-timeout: 10000
-      max-lifetime: 60000
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
 external:
   reservation-service:
-    url: http://localhost:8080
+    url: http://localhost:8081
+
 
 ---
 spring.config.activate.on-profile: test
@@ -66,13 +80,15 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
-      format_sql: true # SQL 예쁘게 출력
-      use_sql_comments: true # SQL 주석 출력
       type:
         # 실제 바인딩된 파라미터까지 로그에 출력
         descriptor:
           sql: trace
+      format_sql: true # SQL 예쁘게 출력
+      use_sql_comments: true # SQL 주석 출력
     show-sql: true
+#  kafka:
+#    bootstrap-servers: localhost:9092
 
 logging:
   level:
@@ -80,8 +96,3 @@ logging:
     org.hibernate.orm.jdbc.bind: trace # Hibernate 6 이상
     com.zaxxer.hikari: DEBUG
     com.p6spy: DEBUG
-
-
-external:
-  reservation-service:
-    url: http://localhost:8080

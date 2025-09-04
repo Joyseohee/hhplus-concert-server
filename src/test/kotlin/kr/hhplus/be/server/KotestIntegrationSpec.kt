@@ -2,6 +2,8 @@ package kr.hhplus.be.server
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
+import kr.hhplus.be.server.config.SharedKafka
+import org.junit.jupiter.api.BeforeAll
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -31,6 +33,11 @@ abstract class KotestIntegrationSpec(
             start()
         }
 
+        @JvmStatic
+        @BeforeAll
+        fun startKafka() {
+            SharedKafka.kafka // lazy start
+        }
 
         @JvmStatic
         @DynamicPropertySource
@@ -40,6 +47,7 @@ abstract class KotestIntegrationSpec(
             registry.add("spring.datasource.password") { mysql.password }
             registry.add("spring.data.redis.host") { redis.host }
             registry.add("spring.data.redis.port") { redis.getMappedPort(6379) }
+            registry.add("spring.kafka.bootstrap-servers") { SharedKafka.kafka.bootstrapServers }
         }
     }
 
