@@ -9,10 +9,6 @@ import java.time.Instant
 
 @MappedSuperclass
 abstract class BaseEntity {
-    @Version
-    @Column(name = "version")
-    open var version: Long = 0L
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     open val createdAt: Instant = Instant.now()
