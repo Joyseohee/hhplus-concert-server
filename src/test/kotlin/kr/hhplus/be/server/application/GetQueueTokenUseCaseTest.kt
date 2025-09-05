@@ -40,7 +40,7 @@ class GetQueueTokenUseCaseTest(
 				val userId = 2L
 				val waiting = QueueToken.create(userId = userId, status = QueueToken.Status.ACTIVE)
 				val saved = queueTokenRepository.save(waiting)
-				queueTokenRepository.activate(1, Instant.now())
+				queueTokenRepository.activate(userId, Instant.now())
 
 				// 실행
 				val output = getQueueTokenUseCase.getToken(saved.token)
