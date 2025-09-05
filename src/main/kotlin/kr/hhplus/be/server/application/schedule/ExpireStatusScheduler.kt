@@ -25,10 +25,6 @@ class ExpireStatusScheduler(
 		val now = Instant.now()
 		queueTokenRepository.deleteExpired(now)
 
-		// 만료된 수만큼 activate 상태로 변경
-		val activeCount = queueTokenRepository.countByStatus(QueueToken.Status.ACTIVE)
-		queueTokenRepository.activate(MAX_ACTIVE_COUNT - activeCount, now)
-
 		// SeatHold 만료 처리
 		val holds = seatHoldRepository.findHoldsToExpire()
 		seatHoldRepository.deleteByIds(holds.map { it.seatHoldId!! })

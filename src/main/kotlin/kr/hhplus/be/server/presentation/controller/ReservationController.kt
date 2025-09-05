@@ -71,7 +71,7 @@ class ReservationController(
 	): ResponseEntity<ApiResponse<HoldSeatUseCase.Output>> {
 
 		val holdSeat = holdSeatUseCase.holdSeat(
-			userId = userId!!,
+			userId = userId,
 			input = seatsHoldRequest,
 		)
 

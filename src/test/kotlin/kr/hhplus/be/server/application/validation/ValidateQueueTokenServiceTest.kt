@@ -35,7 +35,7 @@ class ValidateQueueTokenServiceTest(
 					)
 				)
 
-				queueTokenRepository.activate(1, Instant.now())
+				queueTokenRepository.activate(user.userId, Instant.now())
 
 				val token = queueTokenRepository.findByUserId(user.userId)!!
 
