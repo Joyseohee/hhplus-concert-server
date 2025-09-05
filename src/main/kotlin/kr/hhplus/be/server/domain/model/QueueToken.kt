@@ -19,6 +19,7 @@ class QueueToken private constructor(
 		const val WAIT_TTL = 30L
 		const val HOLD_TTL = 5L
 		const val MAX_ACTIVE_COUNT = 50
+		const val ACTIVATE_BATCH_SIZE = 5
 
 		fun create(
 			userId: Long,

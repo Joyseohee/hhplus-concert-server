@@ -46,23 +46,30 @@ class RedisQueueTokenRepository(
 
 	override fun findByToken(token: String): QueueToken? {
 		val userId = extractUserIdFromKey(token) ?: return null
-		val status = extractStatusFromKey(token) ?: return null
-		val ttl = when (status) {
-			Status.WAITING.name.lowercase() -> WAIT_TTL
-			Status.ACTIVE.name.lowercase() -> HOLD_TTL
-			else -> throw IllegalArgumentException("Unsupported status: ${status}")
-		}
+		val waitingScore = redisTemplate.opsForZSet().score("queue:${Status.WAITING.name.lowercase()}", userId.toString())
+		val activeScore = redisTemplate.opsForZSet().score("queue:${Status.ACTIVE.name.lowercase()}", userId.toString())
 
-		return redisTemplate.opsForZSet().score("queue:${status}", userId.toString())
-			?.let { createdAt ->
-				val rank = redisTemplate.opsForZSet().rank("queue:${status}", userId.toString())
-				return QueueToken.create(
+		return when {
+			activeScore != null -> {
+				val rank = redisTemplate.opsForZSet().rank("queue:${Status.ACTIVE.name.lowercase()}", userId.toString())
+				QueueToken.create(
 					userId = userId,
-					expiresAt = Instant.ofEpochMilli(createdAt.toLong() + ttl * 60),
+					expiresAt = Instant.ofEpochMilli(activeScore.toLong() + HOLD_TTL * 60),
 					position = ((rank ?: -1) + 1).toInt(),
-					status = Status.valueOf(status.uppercase())
+					status = Status.ACTIVE
 				)
 			}
+			waitingScore != null -> {
+				val rank = redisTemplate.opsForZSet().rank("queue:${Status.WAITING.name.lowercase()}", userId.toString())
+				QueueToken.create(
+					userId = userId,
+					expiresAt = Instant.ofEpochMilli(waitingScore.toLong() + WAIT_TTL * 60),
+					position = ((rank ?: -1) + 1).toInt(),
+					status = Status.WAITING
+				)
+			}
+			else -> null
+		}
 	}
 
 	override fun findActiveByToken(token: String): QueueToken? {
@@ -105,30 +112,18 @@ class RedisQueueTokenRepository(
 		return redisTemplate.opsForZSet().size("queue:${status.name.lowercase()}")?.toInt() ?: 0
 	}
 
-	override fun activate(count: Int, now: Instant) {
-		val baseWait = now.toEpochMilli() - WAIT_TTL * 60
+	override fun activate(userId: Long, now: Instant) {
+		val waitingKey = "queue:${Status.WAITING.name.lowercase()}"
+		val activeKey = "queue:${Status.ACTIVE.name.lowercase()}"
 
-		val candidates = redisTemplate.opsForZSet()
-			.rangeByScore(
-				"queue:${Status.WAITING.name.lowercase()}",
-				baseWait.toDouble(),
-				Double.POSITIVE_INFINITY,
-				0,
-				count.toLong()
-			)
-			?.toList().orEmpty()
-		if (candidates.isEmpty()) return
+		val score = redisTemplate.opsForZSet().score(waitingKey, userId.toString())
 
-		redisTemplate.executePipelined { ops ->
-			candidates.forEach { userId ->
-				ops.zSetCommands().zRem("queue:${Status.WAITING.name.lowercase()}".toByteArray(), userId.toByteArray())
-				ops.zSetCommands().zAdd(
-					"queue:${Status.ACTIVE.name.lowercase()}".toByteArray(),
-					now.toEpochMilli().toDouble(),
-					userId.toByteArray()
-				)
+		if (score != null) {
+			redisTemplate.executePipelined { ops ->
+				ops.zSetCommands().zRem(waitingKey.toByteArray(), userId.toString().toByteArray())
+				ops.zSetCommands().zAdd(activeKey.toByteArray(), now.toEpochMilli().toDouble(), userId.toString().toByteArray())
+				null
 			}
-			null
 		}
 	}
 
