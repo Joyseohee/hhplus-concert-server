@@ -48,11 +48,13 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-aop")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.redisson:redisson-spring-boot-starter:3.50.0")
 	implementation("org.springframework.retry:spring-retry")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.springframework.kafka:spring-kafka")
 
 	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")
@@ -62,6 +64,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("org.testcontainers:kafka:1.20.1") // 현재 최신
+	testImplementation("org.springframework.kafka:spring-kafka-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("io.mockk:mockk:1.13.10")
 	testImplementation("io.kotest:kotest-runner-junit5:5.8.1")
@@ -76,6 +80,8 @@ dependencies {
 
 	// 	etc
 	implementation("org.projectlombok:lombok:1.18.28")
+	// implementation("org.springframework.boot:spring-boot-docker-compose")
+	implementation("org.springframework.boot:spring-boot-devtools")
 
 }
 

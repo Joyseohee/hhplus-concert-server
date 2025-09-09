@@ -15,7 +15,7 @@ interface QueueTokenRepository {
 
 	fun countByStatus(active: QueueToken.Status): Int
 
-	fun activate(count: Int, now: Instant)
+	fun activate(userId: Long, now: Instant)
 
 	fun save(queueToken: QueueToken): QueueToken
 
