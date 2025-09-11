@@ -10,7 +10,7 @@ export const options = {
     setupTimeout: '180s',   // 3분까지 허용
     // 여러 시나리오 동시 구동
     scenarios: {
-        // B: 대기열 토큰 발급 + 순번 조회
+        // // B: 대기열 토큰 발급 + 순번 조회
         queue_admission: {
             executor: 'ramping-vus',
             startVUs: 0,
@@ -24,46 +24,24 @@ export const options = {
             tags: { api: 'queue' },
 
         },
-        // // A: 동일 좌석 점유 경합
-        // seat_hold_race: {
+        // ramp: {
         //     executor: 'ramping-arrival-rate',
         //     startRate: 50, timeUnit: '1s',
-        //     preAllocatedVUs: 100, maxVUs: 500,
+        //     preAllocatedVUs: 200, maxVUs: 1000,
         //     stages: [
-        //         { target: 200, duration: '30s' },
-        //         { target: 400, duration: '30s' },
-        //         { target: 0,   duration: '10s' },
+        //         { target: 200, duration: '2m' },
+        //         { target: 400, duration: '2m' },
+        //         { target: 600, duration: '2m' },
         //     ],
-        //     exec: 'seatHoldRace',
-        //     tags: { api: 'seat_hold' },
-        // },
-        // // D: 좌석 목록 조회 폭주
-        // seat_list_read: {
-        //     executor: 'ramping-vus',
-        //     startVUs: 10, stages: [
-        //         { duration: '20s', target: 100 },
-        //         { duration: '30s', target: 300 },
-        //         { duration: '20s', target: 0 },
-        //     ],
-        //     exec: 'listSeats',
-        //     tags: { api: 'list_seats' },
-        // },
-        // // C: 잔액 충전/예약 확정 혼합 (동일 유저 경합)
-        // balance_race: {
-        //     executor: 'per-vu-iterations',
-        //     vus: 50, iterations: 10, maxDuration: '2m',
-        //     exec: 'balanceRace',
-        //     tags: { api: 'balance_reservation' },
-        // },
+        //     exec: 'queueFlow',
+        //     tags: { api: 'queue' },
+        // }
     },
     thresholds: {
-        // 'http_req_failed{api:seat_hold}':     ['rate<0.02'],
-        // 'http_req_duration{api:seat_hold}':   ['p(95)<300'],
-        'http_req_failed{api:queue}':         ['rate<0.02'],
-        'http_req_duration{api:queue}':       ['p(95)<250'],
-        // 'http_req_failed{api:list_seats}':    ['rate<0.01'],
-        // 'http_req_duration{api:list_seats}':  ['p(95)<150'],
+        'http_req_duration{api:queue}': [ 'p(90)<300', 'p(95)<500', 'max<2000' ],
+        'http_req_failed{api:queue}':  [ 'rate<0.01' ],
     },
+    summaryTrendStats: ['avg','min','med','p(75)','p(90)','p(95)','p(99)','max'],
 };
 
 // 공통 유틸
