@@ -10,8 +10,8 @@ class CreateUserUseCase(
     private val userRepository: UserBalanceRepository
 ) {
 
-    fun createUser(userId: Long, balance: Long): Output {
-        val newUser = UserBalance.create(userId = userId, balance = balance)
+    fun createUser(balance: Long): Output {
+        val newUser = UserBalance.create(balance = balance)
         userRepository.save(newUser)
 
         return Output(

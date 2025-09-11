@@ -19,12 +19,12 @@ class UserController(
 ) {
 
     @PostMapping
-    fun createUser(userId: Long, balance: Long): ResponseEntity<ApiResponse<CreateUserUseCase.Output>> {
+    fun createUser(balance: Long): ResponseEntity<ApiResponse<CreateUserUseCase.Output>> {
         return ResponseEntity.status(HttpStatus.CREATED).body(
             ApiResponse(
                 code = "SUCCESS",
                 message = "토큰 생성 성공",
-                data = createUserUseCase.createUser(userId, balance)
+                data = createUserUseCase.createUser(balance)
             )
         )
     }
