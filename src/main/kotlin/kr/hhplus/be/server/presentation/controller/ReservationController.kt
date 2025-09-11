@@ -40,14 +40,14 @@ class ReservationController(
 	}
 
 
-	@PostMapping("/concerts")
+	@PostMapping("/concerts/for-test")
 	fun createConcerts(): ResponseEntity<ApiResponse<CreateConcertUseCase.Output>> {
 		val concerts = createConcertUseCase.execute()
 
 		return ResponseEntity.ok(
 			ApiResponse(
 				code = "SUCCESS",
-				message = "조회 성공",
+				message = "생성 성공",
 				data = concerts
 			)
 		)
@@ -82,7 +82,6 @@ class ReservationController(
 		)
 	}
 
-
 	@PostMapping("/concerts/seats")
 	fun createSeats(
 		@RequestParam(required = true) seatNumber: Int
@@ -92,7 +91,7 @@ class ReservationController(
 		return ResponseEntity.ok(
 			ApiResponse(
 				code = "SUCCESS",
-				message = "좌석 조회 성공",
+				message = "좌석 생성 성공",
 				data = seats
 			)
 		)

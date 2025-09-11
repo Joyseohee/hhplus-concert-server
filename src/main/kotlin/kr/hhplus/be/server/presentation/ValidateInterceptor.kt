@@ -14,8 +14,9 @@ class ValidateInterceptor(
 ) : HandlerInterceptor {
     override fun preHandle(r: HttpServletRequest, s: HttpServletResponse, h: Any): Boolean {
         val userValidationPaths = setOf("/api/v1/queue/token", "/api/v1/queue/token/status", "/api/v1/balance", "/api/v1/balance/charge")
+        val noValidatePaths = setOf("/api/v1/queue/token/status", "/api/v1/users", "/api/v1/reservations/concerts/for-test", "/api/v1/reservations/concerts/seats")
 
-        if(r.requestURI in setOf("/api/v1/queue/token/status")) {
+        if(r.requestURI in noValidatePaths) {
             return true
         } else if (r.requestURI in userValidationPaths) {
             val id = r.getHeader("User-Id")?.toLongOrNull()
