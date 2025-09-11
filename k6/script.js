@@ -11,18 +11,19 @@ export const options = {
     scenarios: {
         // A : 대기열 토큰 발급 + 순번 조회
         queue_admission: {
-            executor: 'ramping-vus',
-            startVUs: 0,
+            executor: 'ramping-arrival-rate',
+            startRate: 0,
+            timeUnit: '3s',
+            preAllocatedVUs: 1000,
             stages: [
-                { duration: '30s', target: 200 },   // 30초 동안 200 VU로 증가
-                { duration: '1m', target: 800 },    // 1분 동안 800 VU까지 증가 (피크)
-                { duration: '30s', target: 800 },   // 800 VU 유지
-                { duration: '1m', target: 0 },      // 1분 동안 종료
+                { target: 5000, duration: '10s' }, // 10초 만에 폭발적 증가
+                { target: 5000, duration: '30s' }, // 30초 유지
+                { target: 0,    duration: '20s' }, // 빠른 종료
             ],
             exec: 'queueFlow',
             tags: { api: 'queue' },
-
         },
+
     },
     thresholds: {
         'http_req_duration{api:queue}': [ 'p(90)<1000', 'p(95)<1000', 'max<2000' ],
