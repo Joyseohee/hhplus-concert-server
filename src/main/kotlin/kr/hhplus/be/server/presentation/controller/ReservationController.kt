@@ -83,7 +83,7 @@ class ReservationController(
 	}
 
 
-	@PostMapping("/concerts/{concertId}/seats")
+	@PostMapping("/concerts/seats")
 	fun createSeats(
 		@PathVariable(required = true) seatNumber: Int
 	): ResponseEntity<ApiResponse<CreateSeatUseCase.Output>> {
