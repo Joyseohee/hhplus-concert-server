@@ -2,6 +2,8 @@ package kr.hhplus.be.server.presentation.controller
 
 
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
+import kr.hhplus.be.server.application.CreateConcertUseCase
+import kr.hhplus.be.server.application.CreateSeatUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
 import kr.hhplus.be.server.application.ListPopularConcertUseCase
@@ -20,11 +22,27 @@ class ReservationController(
 	val listSeatUseCase: ListSeatUseCase,
 	val holdSeatUseCase: HoldSeatUseCase,
 	val confirmReservationUseCase: ConfirmReservationUseCase,
+	val createConcertUseCase: CreateConcertUseCase,
+	val createSeatUseCase: CreateSeatUseCase,
 ) : SwaggerReservationController {
 
 	@GetMapping("/concerts")
 	override fun getConcerts(): ResponseEntity<ApiResponse<ListConcertUseCase.Output>> {
 		val concerts = listConcertUseCase.listConcerts()
+
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "조회 성공",
+				data = concerts
+			)
+		)
+	}
+
+
+	@PostMapping("/concerts")
+	fun createConcerts(): ResponseEntity<ApiResponse<CreateConcertUseCase.Output>> {
+		val concerts = createConcertUseCase.execute()
 
 		return ResponseEntity.ok(
 			ApiResponse(
@@ -54,6 +72,22 @@ class ReservationController(
 		@PathVariable(required = true) concertId: Long
 	): ResponseEntity<ApiResponse<ListSeatUseCase.Output>> {
 		val seats = listSeatUseCase.listAvailableSeats(concertId, userId!!)
+
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "좌석 조회 성공",
+				data = seats
+			)
+		)
+	}
+
+
+	@PostMapping("/concerts/{concertId}/seats")
+	fun createSeats(
+		@PathVariable(required = true) seatNumber: Int
+	): ResponseEntity<ApiResponse<CreateSeatUseCase.Output>> {
+		val seats = createSeatUseCase.execute(seatNumber)
 
 		return ResponseEntity.ok(
 			ApiResponse(
