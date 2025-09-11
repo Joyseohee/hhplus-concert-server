@@ -10,7 +10,7 @@ class CreateSeatUseCase(
 	private val seatRepository: SeatRepository,
 ) {
 	fun execute(seatNumber: Int): Output {
-		val seat = seatRepository.save(Seat.create(seatNumber = seatNumber, price = 130000))
+		val seat = seatRepository.save(Seat.create(seatNumber = seatNumber, price = 1000))
 
 		return Output(
 			seatId = seat.seatId!!,
@@ -18,6 +18,8 @@ class CreateSeatUseCase(
 			price = seat.price,
 		)
 	}
+
+	data class Input(val seatNumber: Int)
 
 	@Schema(name = "CreateSeatRequest", description = "좌석 생성 요청")
 	data class Output(

@@ -20,6 +20,8 @@ class CreateUserUseCase(
         )
     }
 
+    data class Input(val balance: Long)
+
     @Schema(name = "CreateUserUseCaseResponse", description = "사용자 생성 응답")
     data class Output(
         @Schema(description = "사용자 ID", example = "1")

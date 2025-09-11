@@ -84,9 +84,9 @@ class ReservationController(
 
 	@PostMapping("/concerts/seats")
 	fun createSeats(
-		@RequestParam(required = true) seatNumber: Int
+		@RequestBody request: CreateSeatUseCase.Input
 	): ResponseEntity<ApiResponse<CreateSeatUseCase.Output>> {
-		val seats = createSeatUseCase.execute(seatNumber)
+		val seats = createSeatUseCase.execute(request.seatNumber)
 
 		return ResponseEntity.ok(
 			ApiResponse(

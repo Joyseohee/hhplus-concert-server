@@ -13,22 +13,26 @@ class ValidateInterceptor(
     private val userService: ValidateUserService
 ) : HandlerInterceptor {
     override fun preHandle(r: HttpServletRequest, s: HttpServletResponse, h: Any): Boolean {
-        val userValidationPaths = setOf("/api/v1/queue/token", "/api/v1/queue/token/status", "/api/v1/balance", "/api/v1/balance/charge")
+        val userValidationPaths = setOf("/api/v1/queue/token", "/api/v1/balance", "/api/v1/balance/charge")
         val noValidatePaths = setOf("/api/v1/queue/token/status", "/api/v1/users", "/api/v1/reservations/concerts/for-test", "/api/v1/reservations/concerts/seats")
 
-        if(r.requestURI in noValidatePaths) {
-            return true
-        } else if (r.requestURI in userValidationPaths) {
-            val id = r.getHeader("User-Id")?.toLongOrNull()
-                ?: throw IllegalAccessException("User-Id 오류")
-            userService.validateUser(id)
-            r.setAttribute("currentUserId", id)
-        } else {
-            val token = r.getHeader("Queue-Token")
-                ?: throw IllegalAccessException("Queue-Token 없음")
-            val id = tokenService.validateToken(token)
-            r.setAttribute("currentUserId", id)
-        }
+	    when (r.requestURI) {
+		    in noValidatePaths -> {
+			    return true
+		    }
+		    in userValidationPaths -> {
+			    val id = r.getHeader("User-Id")?.toLongOrNull()
+				    ?: throw IllegalAccessException("User-Id 오류")
+			    userService.validateUser(id)
+			    r.setAttribute("currentUserId", id)
+		    }
+		    else -> {
+			    val token = r.getHeader("Queue-Token")
+				    ?: throw IllegalAccessException("Queue-Token 없음")
+			    val id = tokenService.validateToken(token)
+			    r.setAttribute("currentUserId", id)
+		    }
+	    }
         return true
     }
 }
