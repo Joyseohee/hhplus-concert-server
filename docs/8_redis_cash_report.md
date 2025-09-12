@@ -22,6 +22,11 @@
 - [자료구조를 활용한 랭킹 시스템, 비동기 시스템 설계 및 구현 보고서](9_redis_datastructure.md)
 - [도메인 분리 이후 트랜잭션 처리 전략 및 한계 분석](10_edd_transaction_doc.md)
 - [이벤트 호출 로직 시퀀스 다이어그램](11_event_call_sequence_diagram.md)
+### 카프카 설계 문서
+- [카프카 기초 학습 및 활용](12_kafka.md)
+### 부하테스트
+- [카프카 부하 테스트](13_load_test.md)
+
 
 ## 📄 Redis 캐싱 전략 및 적용 여부 판단 문서 (STEP 12)
 

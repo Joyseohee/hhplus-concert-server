@@ -13,7 +13,7 @@ class GetBalanceUseCase(
         val userBalance = balanceRepository.findById(input.userId)
             ?: throw IllegalArgumentException("사용자 잔액을 찾을 수 없습니다: userId=${input.userId}")
 
-        return Output(balance = userBalance.balance)
+        return Output(balance = userBalance.balance!!)
     }
 
     @Schema(name = "GetBalanceRequest", description = "잔액 조회 요청")
