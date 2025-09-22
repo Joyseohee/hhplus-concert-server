@@ -80,7 +80,7 @@ dependencies {
 
 	// 	etc
 	implementation("org.projectlombok:lombok:1.18.28")
-	// implementation("org.springframework.boot:spring-boot-docker-compose")
+	implementation("org.springframework.boot:spring-boot-docker-compose")
 	implementation("org.springframework.boot:spring-boot-devtools")
 
 }

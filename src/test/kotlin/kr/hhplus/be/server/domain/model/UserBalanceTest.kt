@@ -54,7 +54,7 @@ class UserBalanceTest : FreeSpec({
 
                 userBalance.use(useAmount)
                 userBalance.balance shouldBe initialBalance - useAmount
-                userBalance.balance shouldBeGreaterThanOrEqual 0L
+                userBalance.balance!! shouldBeGreaterThanOrEqual 0L
             }
         }
 

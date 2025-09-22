@@ -17,7 +17,7 @@ class ExpireStatusScheduler(
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
-	@Scheduled(fixedDelay = 5_000L)
+	@Scheduled(fixedDelay = 50_000L)
 	@Transactional
 	fun expireStatuses() {
 		log.info("스케줄러 실행 시점 :: ${Instant.now()}")

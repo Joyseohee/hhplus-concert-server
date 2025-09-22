@@ -23,7 +23,7 @@ class ChargeBalanceUseCase(
         userBalance.charge(input.amount)
 
         return Output(
-            balance = userBalance.balance
+            balance = userBalance.balance!!
         )
     }
 

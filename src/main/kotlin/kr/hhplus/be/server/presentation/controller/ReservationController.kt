@@ -2,6 +2,8 @@ package kr.hhplus.be.server.presentation.controller
 
 
 import kr.hhplus.be.server.application.ConfirmReservationUseCase
+import kr.hhplus.be.server.application.CreateConcertUseCase
+import kr.hhplus.be.server.application.CreateSeatUseCase
 import kr.hhplus.be.server.application.HoldSeatUseCase
 import kr.hhplus.be.server.application.ListConcertUseCase
 import kr.hhplus.be.server.application.ListPopularConcertUseCase
@@ -20,6 +22,8 @@ class ReservationController(
 	val listSeatUseCase: ListSeatUseCase,
 	val holdSeatUseCase: HoldSeatUseCase,
 	val confirmReservationUseCase: ConfirmReservationUseCase,
+	val createConcertUseCase: CreateConcertUseCase,
+	val createSeatUseCase: CreateSeatUseCase,
 ) : SwaggerReservationController {
 
 	@GetMapping("/concerts")
@@ -30,6 +34,20 @@ class ReservationController(
 			ApiResponse(
 				code = "SUCCESS",
 				message = "조회 성공",
+				data = concerts
+			)
+		)
+	}
+
+
+	@PostMapping("/concerts/for-test")
+	fun createConcerts(): ResponseEntity<ApiResponse<CreateConcertUseCase.Output>> {
+		val concerts = createConcertUseCase.execute()
+
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "생성 성공",
 				data = concerts
 			)
 		)
@@ -59,6 +77,21 @@ class ReservationController(
 			ApiResponse(
 				code = "SUCCESS",
 				message = "좌석 조회 성공",
+				data = seats
+			)
+		)
+	}
+
+	@PostMapping("/concerts/seats")
+	fun createSeats(
+		@RequestBody request: CreateSeatUseCase.Input
+	): ResponseEntity<ApiResponse<CreateSeatUseCase.Output>> {
+		val seats = createSeatUseCase.execute(request.seatNumber)
+
+		return ResponseEntity.ok(
+			ApiResponse(
+				code = "SUCCESS",
+				message = "좌석 생성 성공",
 				data = seats
 			)
 		)
